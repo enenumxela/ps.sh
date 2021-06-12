@@ -117,6 +117,16 @@ setup_requirements() {
 		
 		GO111MODULE=on go get -v github.com/projectdiscovery/naabu/v2/cmd/naabu
 	fi
+
+	script="${HOME}/.local/bin/ps.sh"
+
+	if [ -e "${script}" ]
+	then
+		rm ${script}
+	fi
+
+	curl -sL https://github.com/enenumxela/ps.sh/raw/main/ps.sh -o ${script}
+	chmod u+x ${script}
 }
 
 # Function to handle open ports discovery
