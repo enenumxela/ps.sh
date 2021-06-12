@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 bold="\e[1m"
 red="\e[31m"
 cyan="\e[36m"
@@ -13,7 +15,7 @@ script_file_location="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 target=False
 targets_list=False
-output_directory="$(pwd)/pd.sh"
+output_directory="$(pwd)/ps.sh-output"
 port_scan_workflow="nmap2nmap"
 port_scan_workflows=(nmap2nmap naabu2nmap masscan2nmap)
 
@@ -23,7 +25,6 @@ steps=(
 	)
 steps_to_skip=False
 steps_to_perform=False
-
 
 # Function to display the script usage
 display_usage() {
@@ -77,7 +78,12 @@ setup_requirements() {
 
 	if [ ${#missing_tools[@]} -gt 0 ]
 	then
-		sudo apt -qq -y install ${missing_tools[@]}
+		if [ "${UID}" -gt 0 ]
+		then
+			echo ${password} | sudo -S apt -qq -y install ${missing_tools[@]}
+		else
+			apt -qq -y install ${missing_tools[@]}
+		fi
 	fi
 
 	if [ ! -x "$(command -v go)" ]
@@ -86,7 +92,12 @@ setup_requirements() {
 
 		wget https://golang.org/dl/go${version}.linux-amd64.tar.gz -O /tmp/go${version}.linux-amd64.tar.gz
 
-		sudo tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
+		if [ "${UID}" -gt 0 ]
+		then
+			echo ${password} | sudo -S tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
+		else
+			tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
+		fi
 
 		(grep -q "export PATH=\$PATH:/usr/local/go/bin" ~/.profile) || {
 			export PATH=$PATH:/usr/local/go/bin
@@ -96,8 +107,14 @@ setup_requirements() {
 	fi
 
 	if [ ! -x "$(command -v naabu)" ]
-	then 
-		sudo apt -qq -y install libpcap-dev
+	then
+		if [ "${UID}" -gt 0 ]
+		then
+			echo ${password} | sudo -S apt -qq -y install libpcap-dev
+		else
+			apt -qq -y install libpcap-dev
+		fi
+		
 		GO111MODULE=on go get -v github.com/projectdiscovery/naabu/v2/cmd/naabu
 	fi
 }
@@ -115,13 +132,23 @@ port_discovery() {
 		# nmap2nmap workflow
 		if [ "${port_scan_workflow}" == "nmap2nmap" ]
 		then
-			echo ${password} | sudo -S nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oA ${nmap_port_discovery_output}
+			if [ "${UID}" -gt 0 ]
+			then
+				echo ${password} | sudo -S nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oA ${nmap_port_discovery_output}
+			else
+				nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oA ${nmap_port_discovery_output}
+			fi
 		fi
 
 		# naabu2nmap workflow
 		if [ "${port_scan_workflow}" == "naabu2nmap" ]
-		then 
-			echo ${password} | sudo -S naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
+		then
+			if [ "${UID}" -gt 0 ]
+			then
+				echo ${password} | sudo -S naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
+			else
+				naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
+			fi
 
 			if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 			then 
@@ -129,7 +156,12 @@ port_discovery() {
 
 				echo -e "        [-] no open port discovered!"
 
-				echo ${password} | sudo -S rm -rf ${port_discovery_output_dir}
+				if [ "${UID}" -gt 0 ]
+				then
+					echo ${password} | sudo -S rm -rf ${port_discovery_output_dir}
+				else
+					rm -rf ${port_discovery_output_dir}
+				fi
 			fi
 		fi
 	}
@@ -138,13 +170,6 @@ port_discovery() {
 # Function to handle running services discovery and versions
 service_discovery() {
 	[ "${skip}" == False ] && {
-		echo -e "\n    [+] service(s) discovery\n"
-
-		if [ ! -d ${service_discovery_output_dir} ]
-		then
-			mkdir -p ${service_discovery_output_dir}
-		fi
-
 		# nmap2nmap workflow
 		if [ "${port_scan_workflow}" == "nmap2nmap" ]
 		then
@@ -153,12 +178,24 @@ service_discovery() {
 				port_discovery
 			fi
 
+			echo -e "\n    [+] service(s) discovery\n"
+
+			if [ ! -d ${service_discovery_output_dir} ]
+			then
+				mkdir -p ${service_discovery_output_dir}
+			fi
+
 			ports_string=$(_parse_nmap_xml_output "reachable-ports" "${nmap_port_discovery_output}.xml")
 			ports_dictionary=${ports_string//,/ }
 
 			if [ ${#ports_dictionary[@]} -gt 0 ]
 			then
-				echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${ports_string} ${target} -oA ${service_discovery_output}
+				if [ "${UID}" -gt 0 ]
+				then
+					echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${ports_string} ${target} -oA ${service_discovery_output}
+				else
+					nmap -Pn -sS -sV -T4 -n -p ${ports_string} ${target} -oA ${service_discovery_output}
+				fi
 			fi
 		fi
 
@@ -168,6 +205,13 @@ service_discovery() {
 			if [ ! -f ${naabu_port_discovery_output} ]
 			then
 				port_discovery
+			fi
+
+			echo -e "\n    [+] service(s) discovery\n"
+
+			if [ ! -d ${service_discovery_output_dir} ]
+			then
+				mkdir -p ${service_discovery_output_dir}
 			fi
 
 			ports_dictionary=()
@@ -183,7 +227,13 @@ service_discovery() {
 			if [ ${#ports_dictionary[@]} -gt 0 ]
 			then
 				ports_string="${ports_dictionary[@]}"
-				echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
+
+				if [ "${UID}" -gt 0 ]
+				then
+					echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
+				else
+					nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
+				fi
 			fi
 		fi
 	}
@@ -325,9 +375,12 @@ do
 	shift
 done
 
-# get password from user
-read -s -p "Password please: " password
-echo
+if [ "${UID}" -gt 0 ]
+then
+	# get password from user
+	read -s -p "[sudo] password for ${USER}:" password
+	echo
+fi
 
 # ensure required tools are installed
 tools=(tee nmap naabu masscan xsltproc)
