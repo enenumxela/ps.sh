@@ -11,7 +11,6 @@ green="\e[32m"
 yellow="\e[33m"
 underline="\e[4m"
 script_file_name=${0##*/}
-script_file_location="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 target=False
 targets_list=False
@@ -64,7 +63,7 @@ setup_requirements() {
 		wget
 		nmap
 		masscan
-		xsltproc
+		xmllint
 	)
 	missing_tools=()
 
@@ -188,23 +187,24 @@ service_discovery() {
 				port_discovery
 			fi
 
-			echo -e "\n    [+] service(s) discovery\n"
+			open_ports_space_separeted="$(xmllint --xpath '//port/state[@state = "open" or @state = "closed" or @state = "unfiltered"]/../@portid' ${nmap_port_discovery_output}.xml | awk -F\" '{ print $2 }' | tr '\n' ' ' |sed -e 's/[[:space:]]*$//')"
 
-			if [ ! -d ${service_discovery_output_dir} ]
+			if [ ${#open_ports_space_separeted} -gt 0 ]
 			then
-				mkdir -p ${service_discovery_output_dir}
-			fi
+				echo -e "\n    [+] service(s) discovery\n"
 
-			ports_string=$(_parse_nmap_xml_output "reachable-ports" "${nmap_port_discovery_output}.xml")
-			ports_dictionary=${ports_string//,/ }
+				if [ ! -d ${service_discovery_output_dir} ]
+				then
+					mkdir -p ${service_discovery_output_dir}
+				fi
 
-			if [ ${#ports_dictionary[@]} -gt 0 ]
-			then
+				open_ports_comma_separeted=${open_ports_space_separeted// /,}
+
 				if [ "${UID}" -gt 0 ]
 				then
-					echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${ports_string} ${target} -oA ${service_discovery_output}
+					echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
 				else
-					nmap -Pn -sS -sV -T4 -n -p ${ports_string} ${target} -oA ${service_discovery_output}
+					nmap -Pn -sS -sV -T4 -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
 				fi
 			fi
 		fi
@@ -286,24 +286,6 @@ handle_target() {
 	}
 
 	skip=False
-}
-
-_parse_nmap_xml_output() {
-	xslt_file_name=${1}; shift
-	nmap_xml_output_file=${1}; shift
-
-	[ ! -f ${nmap_xml_output_file} ] && {
-		echo -e "[-] file not found! : ${nmap_xml_output_file}"
-		exit 1
-	}
-
-	xslt_file="${script_file_location}/xslt/${xslt_file_name}.xslt"
-	[ ! -f ${xslt_file} ] && {
-		echo -e "[-] Unknown xlst!"
-		exit 1
-	}
-
-	xsltproc ${xslt_file} ${nmap_xml_output_file}
 }
 
 # display banner
@@ -393,7 +375,7 @@ then
 fi
 
 # ensure required tools are installed
-tools=(tee nmap naabu masscan xsltproc)
+tools=(tr sed awk tee nmap naabu masscan xmllint)
 missing_tools=()
 
 for tool in "${tools[@]}"
