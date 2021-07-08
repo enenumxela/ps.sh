@@ -14,7 +14,7 @@ script_file_name=${0##*/}
 
 target=False
 targets_list=False
-output_directory="$(pwd)/ps.sh-output"
+output_directory="$(pwd)/port-scanning"
 port_scan_workflow="nmap2nmap"
 port_scan_workflows=(nmap2nmap naabu2nmap masscan2nmap)
 
@@ -54,78 +54,6 @@ display_usage() {
 	\r ${red}${bold}HAPPY HACKING ${yellow}:)${reset}
 
 EOF
-}
-
-# Function to install and setup required tools
-setup_requirements() {
-	tools=(
-		tee
-		wget
-		nmap
-		masscan
-		xmllint
-	)
-	missing_tools=()
-
-	for tool in "${tools[@]}"
-	do
-		if [ ! -x "$(command -v ${tool})" ]
-		then 
-			missing_tools+=(${tool})
-		fi
-	done
-
-	if [ ${#missing_tools[@]} -gt 0 ]
-	then
-		if [ "${UID}" -gt 0 ]
-		then
-			echo ${password} | sudo -S apt -qq -y install ${missing_tools[@]}
-		else
-			apt -qq -y install ${missing_tools[@]}
-		fi
-	fi
-
-	if [ ! -x "$(command -v go)" ]
-	then
-		version=1.15.7
-
-		wget https://golang.org/dl/go${version}.linux-amd64.tar.gz -O /tmp/go${version}.linux-amd64.tar.gz
-
-		if [ "${UID}" -gt 0 ]
-		then
-			echo ${password} | sudo -S tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
-		else
-			tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
-		fi
-
-		(grep -q "export PATH=\$PATH:/usr/local/go/bin" ~/.profile) || {
-			export PATH=$PATH:/usr/local/go/bin
-			echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.profile
-			source ~/.profile
-		}
-	fi
-
-	if [ ! -x "$(command -v naabu)" ]
-	then
-		if [ "${UID}" -gt 0 ]
-		then
-			echo ${password} | sudo -S apt -qq -y install libpcap-dev
-		else
-			apt -qq -y install libpcap-dev
-		fi
-		
-		GO111MODULE=on go get -v github.com/projectdiscovery/naabu/v2/cmd/naabu
-	fi
-
-	script="${HOME}/.local/bin/ps.sh"
-
-	if [ -e "${script}" ]
-	then
-		rm ${script}
-	fi
-
-	curl -sL https://github.com/enenumxela/ps.sh/raw/main/ps.sh -o ${script}
-	chmod u+x ${script}
 }
 
 # Function to handle open ports discovery
@@ -352,7 +280,7 @@ do
 			shift
 		;;
 		--setup)
-			setup_requirements
+			curl -sL https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
 			exit 0
 		;;
 		-h | --help)
@@ -373,24 +301,6 @@ then
 	read -s -p "[sudo] password for ${USER}:" password
 	echo
 fi
-
-# ensure required tools are installed
-tools=(tr sed awk tee nmap naabu masscan xmllint)
-missing_tools=()
-
-for tool in "${tools[@]}"
-do
-	if [ ! -x "$(command -v ${tool})" ]
-	then 
-		missing_tools+=(${tool})
-	fi
-done
-
-[ ${#missing_tools[@]} -gt 0 ] && {
-	missing_tools_str="${missing_tools[@]}"
-	echo -e "\n${blue}[${red}-${blue}]${reset} failed! missing tool(s) : " ${missing_tools_str// /,}"\n"
-	exit 1
-}
 
 # ensure target(s) is/are provided
 if [ ${target} == False ] && [ ${targets_list} == False ]
