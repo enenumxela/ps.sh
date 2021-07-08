@@ -30,21 +30,21 @@ $ ./ps.sh -h
    ps.sh [OPTIONS]
 
  Options:
-   -t, --target		 target to enumerate
-   -l, --list		 target list to enumerate
-   -w, --workflow	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
-                 	 (default: nmap2nmap)
-   -o, --output		 output directory path
-               		 (default: /home/drsigned/Projects/enenumxela/ps.sh/pd.sh)
-   -p, --perform	 comma(,) separated list of steps to perform
-   -s, --skip		 comma(,) separated list of steps to skip
-       --setup		 setup requirements for this script
-   -h, --help		 display this help message and exit
+    -t, --target 	 target to enumerate
+   -tL, --targets-list 	 target list to enumerate
+    -w, --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
+                   	 (default: nmap2nmap)
+    -o, --output 	 output directory path
+                 	 (default: /home/drsigned/Projects/enenumxela/ps.sh/port-scanning)
+    -p, --perform 	 comma(,) separated list of steps to perform
+    -s, --skip 		 comma(,) separated list of steps to skip
+        --setup 	 setup requirements for this script
+    -h, --help 		 display this help message and exit
 
  Available Steps:
 
- [+] port_discovery	 discover open ports
- [+] service_discovery	 discover running services & their versions
+ [+] port_discovery 	 discover open ports
+ [+] service_discovery 	 discover running services & their versions
 
  HAPPY HACKING :)
 

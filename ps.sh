@@ -35,21 +35,21 @@ display_usage() {
 	\r   ${script_file_name} [OPTIONS]
 
 	\r Options:
-	\r   -t, --target\t\t target to enumerate
-	\r   -l, --list\t\t target list to enumerate
-	\r   -w, --workflow\t port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
-	\r                 \t (default: ${underline}${port_scan_workflow}${reset})
-	\r   -o, --output\t\t output directory path
-	\r               \t\t (default: ${underline}${output_directory}${reset})
-	\r   -p, --perform\t comma(,) separated list of steps to perform
-	\r   -s, --skip\t\t comma(,) separated list of steps to skip
-	\r       --setup\t\t setup requirements for this script
-	\r   -h, --help\t\t display this help message and exit
+	\r    -t, --target \t target to enumerate
+	\r   -tL, --targets-list \t target list to enumerate
+	\r    -w, --workflow \t port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
+	\r                   \t (default: ${underline}${port_scan_workflow}${reset})
+	\r    -o, --output \t output directory path
+	\r                 \t (default: ${underline}${output_directory}${reset})
+	\r    -p, --perform \t comma(,) separated list of steps to perform
+	\r    -s, --skip \t\t comma(,) separated list of steps to skip
+	\r        --setup \t setup requirements for this script
+	\r    -h, --help \t\t display this help message and exit
 
 	\r Available Steps:
 
-	\r [+] port_discovery\t discover open ports
-	\r [+] service_discovery\t discover running services & their versions
+	\r [+] port_discovery \t discover open ports
+	\r [+] service_discovery \t discover running services & their versions
 
 	\r ${red}${bold}HAPPY HACKING ${yellow}:)${reset}
 
@@ -234,7 +234,7 @@ do
 			target=${2}
 			shift
 		;;
-		-l | --list)
+		-tL | --targets-list)
 			targets_list=${2}
 			shift
 		;;
