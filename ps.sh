@@ -69,23 +69,18 @@ port_discovery() {
 		# nmap2nmap workflow
 		if [ "${port_scan_workflow}" == "nmap2nmap" ]
 		then
-			if [ "${UID}" -gt 0 ]
-			then
-				echo ${password} | sudo -S nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oA ${nmap_port_discovery_output}
-			else
-				nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oA ${nmap_port_discovery_output}
+			nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oA ${nmap_port_discovery_output}
+
+			if [ ! -f ${nmap_port_discovery_output}.xml ]
+			then 
+				skip=True
 			fi
 		fi
 
 		# naabu2nmap workflow
 		if [ "${port_scan_workflow}" == "naabu2nmap" ]
 		then
-			if [ "${UID}" -gt 0 ]
-			then
-				echo ${password} | sudo -S naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
-			else
-				naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
-			fi
+			naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
 
 			if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 			then 
@@ -93,12 +88,7 @@ port_discovery() {
 
 				echo -e "        [-] no open port discovered!"
 
-				if [ "${UID}" -gt 0 ]
-				then
-					echo ${password} | sudo -S rm -rf ${port_discovery_output_dir}
-				else
-					rm -rf ${port_discovery_output_dir}
-				fi
+				rm -rf ${port_discovery_output_dir}
 			fi
 		fi
 	}
@@ -128,12 +118,7 @@ service_discovery() {
 
 				open_ports_comma_separeted=${open_ports_space_separeted// /,}
 
-				if [ "${UID}" -gt 0 ]
-				then
-					echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
-				else
-					nmap -Pn -sS -sV -T4 -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
-				fi
+				nmap -Pn -sS -sV -T4 -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
 			fi
 		fi
 
@@ -166,12 +151,7 @@ service_discovery() {
 			then
 				ports_string="${ports_dictionary[@]}"
 
-				if [ "${UID}" -gt 0 ]
-				then
-					echo ${password} | sudo -S nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
-				else
-					nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
-				fi
+				nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
 			fi
 		fi
 	}
@@ -297,9 +277,8 @@ done
 
 if [ "${UID}" -gt 0 ]
 then
-	# get password from user
-	read -s -p "[sudo] password for ${USER}:" password
-	echo
+	echo -e "${blue}[${red}-${blue}]${reset} root privileges required!\n"
+	exit 1
 fi
 
 # ensure target(s) is/are provided
@@ -312,7 +291,7 @@ fi
 # Flow for a single target
 if [ ${target} != False ]
 then
-	echo -e "\n[*] port scanning ${target}"
+	echo -e "[*] port scanning ${target}"
 	handle_target
 fi
 
@@ -323,7 +302,7 @@ then
 	count=1
 	while read target
 	do
-		echo -e "\n[*] (${count}/${total}) port scanning ${target}"
+		echo -e "[*] (${count}/${total}) port scanning ${target}"
 		handle_target
 		let count+=1
 	done < ${targets_list}

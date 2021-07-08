@@ -12,25 +12,7 @@ underline="\e[4m"
 echo -e " [+] Running install script for subdomains.sh & its requirements.\n"
 
 # tr sed awk tee nmap naabu masscan xmllint
-
-tools=(
-    curl
-    nmap
-)
-missing_tools=()
-
-for tool in "${tools[@]}"
-do
-    if [ ! -x "$(command -v ${tool})" ]
-    then 
-        missing_tools+=(${tool})
-    fi
-done
-
-if [ ${#missing_tools[@]} -gt 0 ]
-then
-    sudo apt -qq -y install ${missing_tools[@]}
-fi
+sudo apt -qq -y curl nmap libxml2-utils libpcap-dev
 
 # golang
 
