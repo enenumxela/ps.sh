@@ -209,12 +209,12 @@ echo -e ${blue}${bold}"
 # parse options
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
 do
-	case "$(echo ${1} | tr '[:upper:]' '[:lower:]')" in
+	case ${1}  in
 		-t | --target)
 			target=${2}
 			shift
 		;;
-		--targets-list)
+		-tL | --target-list)
 			targets_list=${2}
 			shift
 		;;
@@ -284,7 +284,7 @@ fi
 # ensure target(s) is/are provided
 if [ ${target} == False ] && [ ${targets_list} == False ]
 then
-	echo -e "${blue}[${red}-${blue}]${reset} failed! argument -t/--target OR -l/--list is Required!\n"
+	echo -e "${blue}[${red}-${blue}]${reset} failed! argument -t/--target OR -tL/--targets_list is Required!\n"
 	exit 1
 fi
 
