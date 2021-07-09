@@ -36,7 +36,7 @@ display_usage() {
 
 	\r Options:
 	\r    -t, --target \t target to enumerate
-	\r        --targets-list \t target list to enumerate
+	\r   -tL, --targets-list \t target list to enumerate
 	\r    -w, --workflow \t port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
 	\r                   \t (default: ${underline}${port_scan_workflow}${reset})
 	\r    -o, --output \t output directory path

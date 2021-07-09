@@ -31,7 +31,7 @@ $ ./ps.sh -h
 
  Options:
     -t, --target 	 target to enumerate
-        --targets-list 	 target list to enumerate
+   -tL, --targets-list 	 target list to enumerate
     -w, --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
                    	 (default: nmap2nmap)
     -o, --output 	 output directory path
