@@ -9,10 +9,10 @@ green="\e[32m"
 yellow="\e[33m"
 underline="\e[4m"
 
-echo -e " [+] Running install script for subdomains.sh & its requirements.\n"
+echo -e " [+] Running install script for ps.sh requirements.\n"
 
 # tr sed awk tee nmap naabu masscan xmllint
-sudo apt -qq -y curl nmap libxml2-utils libpcap-dev
+sudo apt -qq -y curl nmap masscan libxml2-utils libpcap-dev
 
 # golang
 
@@ -40,15 +40,3 @@ fi
 # naabu
 
 GO111MODULE=on go get -v github.com/projectdiscovery/naabu/v2/cmd/naabu
-
-# ps.sh
-
-script_path="${script_directory}/ps.sh"
-
-if [ -f "${script_path}" ]
-then
-    rm ${script_path}
-fi
-
-curl -sL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh -o ${script_path}
-chmod u+x ${script_path}

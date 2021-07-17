@@ -13,8 +13,7 @@ underline="\e[4m"
 script_file_name=${0##*/}
 
 target=False
-targets_list=False
-output_directory="$(pwd)/port-scanning"
+output_directory="."
 port_scan_workflow="nmap2nmap"
 port_scan_workflows=(nmap2nmap naabu2nmap masscan2nmap)
 
@@ -35,16 +34,15 @@ display_usage() {
 	\r   ${script_file_name} [OPTIONS]
 
 	\r Options:
-	\r    -t, --target \t target to enumerate
-	\r   -tL, --targets-list \t target list to enumerate
-	\r    -w, --workflow \t port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
+	\r   -t,  --target \t target to enumerate
+	\r   -w,  --workflow \t port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
 	\r                   \t (default: ${underline}${port_scan_workflow}${reset})
-	\r    -o, --output \t output directory path
+	\r   -oD, --output-dir \t output directory path
 	\r                 \t (default: ${underline}${output_directory}${reset})
-	\r    -p, --perform \t comma(,) separated list of steps to perform
-	\r    -s, --skip \t\t comma(,) separated list of steps to skip
+	\r   -p,  --perform \t comma(,) separated list of steps to perform
+	\r   -s,  --skip \t\t comma(,) separated list of steps to skip
 	\r        --setup \t setup requirements for this script
-	\r    -h, --help \t\t display this help message and exit
+	\r   -h,  --help \t\t display this help message and exit
 
 	\r Available Steps:
 
@@ -61,11 +59,6 @@ port_discovery() {
 	[ "${skip}" == False ] && {
 		echo -e "\n    [+] open port(s) discovery\n"
 
-		if [ ! -d ${port_discovery_output_dir} ]
-		then 
-			mkdir -p ${port_discovery_output_dir}
-		fi
-
 		# nmap2nmap workflow
 		if [ "${port_scan_workflow}" == "nmap2nmap" ]
 		then
@@ -80,7 +73,7 @@ port_discovery() {
 		# naabu2nmap workflow
 		if [ "${port_scan_workflow}" == "naabu2nmap" ]
 		then
-			naabu -p - -host ${target} -silent | tee ${naabu_port_discovery_output}
+			${HOME}/go/bin/naabu -host ${target} -p - -silent | tee ${naabu_port_discovery_output}
 
 			if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 			then 
@@ -110,11 +103,6 @@ service_discovery() {
 			if [ ${#open_ports_space_separeted} -gt 0 ]
 			then
 				echo -e "\n    [+] service(s) discovery\n"
-
-				if [ ! -d ${service_discovery_output_dir} ]
-				then
-					mkdir -p ${service_discovery_output_dir}
-				fi
 
 				open_ports_comma_separeted=${open_ports_space_separeted// /,}
 
@@ -157,45 +145,6 @@ service_discovery() {
 	}
 }
 
-# Function to handle the workflow per target
-handle_target() {
-	skip=False
-
-	port_discovery_output_dir="${output_directory}/${target}/open-port-discovery"
-	nmap_port_discovery_output="${port_discovery_output_dir}/nmap-port-discovery"
-	naabu_port_discovery_output="${port_discovery_output_dir}/naabu-port-discovery.txt"
-
-	service_discovery_output_dir="${output_directory}/${target}/service-discovery"
-	service_discovery_output="${service_discovery_output_dir}/nmap-service-discovery"
-
-	[ ${steps_to_perform} == False ] && [ ${steps_to_skip} == False ] && {
-		for task in "${steps[@]}"
-		do
-			${task}
-		done
-	} || {
-		[ ${steps_to_perform} != False ] && {
-			for task in "${steps_to_perform_dictionary[@]}"
-			do 
-				${task}
-			done
-		}
-		[ ${steps_to_skip} != False ] && {
-			for task in ${steps[@]}
-			do
-				if [[ " ${steps_to_skip_dictionary[@]} " =~ " ${task} " ]]
-				then
-					continue
-				else
-					${task}
-				fi
-			done
-		}
-	}
-
-	skip=False
-}
-
 # display banner
 echo -e ${blue}${bold}"
                   _
@@ -214,10 +163,6 @@ do
 			target=${2}
 			shift
 		;;
-		-tL | --target-list)
-			targets_list=${2}
-			shift
-		;;
 		-w | --workflow)
 			if [[ ! " ${port_scan_workflows[@]} " =~ " ${2} " ]]
 			then
@@ -227,7 +172,7 @@ do
 			port_scan_workflow=${2}
 			shift
 		;;
-		-o | --output)
+		-oD | --output-dir)
 			output_directory="${2}"
 			shift
 		;;
@@ -292,20 +237,45 @@ fi
 if [ ${target} != False ]
 then
 	echo -e "[*] port scanning ${target}"
-	handle_target
-fi
 
-# Flow for a target list
-if [ ${targets_list} != False ]
-then
-	total=$(wc -l < ${targets_list})
-	count=1
-	while read target
-	do
-		echo -e "[*] (${count}/${total}) port scanning ${target}"
-		handle_target
-		let count+=1
-	done < ${targets_list}
+	skip=False
+
+	if [ ! -d ${output_directory} ]
+	then
+		mkdir -p ${output_directory}
+	fi
+
+	nmap_port_discovery_output="${output_directory}/${target}-nmap-port-discovery"
+	naabu_port_discovery_output="${output_directory}/${target}-naabu-port-discovery.txt"
+
+	service_discovery_output="${output_directory}/${target}-nmap-service-discovery"
+
+	[ ${steps_to_perform} == False ] && [ ${steps_to_skip} == False ] && {
+		for task in "${steps[@]}"
+		do
+			${task}
+		done
+	} || {
+		[ ${steps_to_perform} != False ] && {
+			for task in "${steps_to_perform_dictionary[@]}"
+			do 
+				${task}
+			done
+		}
+		[ ${steps_to_skip} != False ] && {
+			for task in ${steps[@]}
+			do
+				if [[ " ${steps_to_skip_dictionary[@]} " =~ " ${task} " ]]
+				then
+					continue
+				else
+					${task}
+				fi
+			done
+		}
+	}
+
+	skip=False
 fi
 
 exit 0

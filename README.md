@@ -16,9 +16,11 @@ $ git clone https://github.com/enenumxela/ps.sh.git
 
 To display this script's help message, use the `-h` flag:
 
+```bash
+./ps.sh -h
 ```
-$ ./ps.sh -h
 
+```text
                   _
   _ __  ___   ___| |__
  | '_ \/ __| / __| '_ \
@@ -30,16 +32,15 @@ $ ./ps.sh -h
    ps.sh [OPTIONS]
 
  Options:
-    -t, --target 	 target to enumerate
-   -tL, --targets-list 	 target list to enumerate
-    -w, --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
+   -t,  --target 	 target to enumerate
+   -w,  --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
                    	 (default: nmap2nmap)
-    -o, --output 	 output directory path
-                 	 (default: /home/drsigned/Projects/enenumxela/ps.sh/port-scanning)
-    -p, --perform 	 comma(,) separated list of steps to perform
-    -s, --skip 		 comma(,) separated list of steps to skip
+   -oD, --output-dir 	 output directory path
+                 	 (default: .)
+   -p,  --perform 	 comma(,) separated list of steps to perform
+   -s,  --skip 		 comma(,) separated list of steps to skip
         --setup 	 setup requirements for this script
-    -h, --help 		 display this help message and exit
+   -h,  --help 		 display this help message and exit
 
  Available Steps:
 
@@ -50,6 +51,6 @@ $ ./ps.sh -h
 
 ```
 
-## Contibution
+## Contribution
 
 [Issues](https://github.com/enenumxela/ps.sh/issues) and [Pull Requests](https://github.com/enenumxela/ps.sh/pulls) are welcome!
