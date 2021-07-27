@@ -21,31 +21,24 @@ To display this script's help message, use the `-h` flag:
 ```
 
 ```text
-                  _
-  _ __  ___   ___| |__
- | '_ \/ __| / __| '_ \
- | |_) \__  _\__ \ | | |
- | .__/|___(_)___/_| |_| v1.0.0
- |_|
+                 _
+ _ __  ___   ___| |__
+| '_ \/ __| / __| '_ \
+| |_) \__  _\__ \ | | |
+| .__/|___(_)___/_| |_| v1.0.0
+|_|
 
  USAGE:
    ps.sh [OPTIONS]
 
- Options:
-   -t,  --target 	 target to enumerate
-   -w,  --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
-                   	 (default: nmap2nmap)
-   -oD, --output-dir 	 output directory path
-                 	 (default: .)
-   -p,  --perform 	 comma(,) separated list of steps to perform
-   -s,  --skip 		 comma(,) separated list of steps to skip
-        --setup 	 setup requirements for this script
-   -h,  --help 		 display this help message and exit
-
- Available Steps:
-
- [+] port_discovery 	 discover open ports
- [+] service_discovery 	 discover running services & their versions
+Options:
+   -t, --target 	 target to enumerate
+   -w, --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
+                  	 (default: nmap2nmap)
+  -oD, --output-dir 	 output directory path
+   -k, --keep 		 keep each tool's temp results
+       --setup 		 setup requirements for this script
+   -h, --help 		 display this help message and exit
 
  HAPPY HACKING :)
 
