@@ -138,7 +138,7 @@ then
 	fi
 fi
 
-service_discovery_output="${output_directory}/${target}.xml"
+service_discovery_output="${output_directory}/${target}"
 
 # nmap2nmap workflow
 if [ "${port_scan_workflow}" == "nmap2nmap" ]
