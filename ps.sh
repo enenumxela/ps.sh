@@ -126,7 +126,7 @@ naabu_port_discovery_output="${output_directory}/${target}-naabu-port-discovery.
 
 if [ "${port_scan_workflow}" == "naabu2nmap" ]
 then
-	naabu -host ${target} -p - -silent | tee ${naabu_port_discovery_output}
+	naabu -host ${target} -ports full -silent | tee ${naabu_port_discovery_output}
 
 	if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 	then 
