@@ -129,7 +129,7 @@ naabu_port_discovery_output="${output_directory}/${target}-naabu-port-discovery.
 
 if [ "${port_scan_workflow}" == "naabu2nmap" ]
 then
-	echo "${PASSWORD}" | sudo -S ${HOME}/go/bin/naabu -host ${target} -port 1-65535 -silent | tee ${naabu_port_discovery_output}
+	echo "${PASSWORD}" | sudo -S ${HOME}/go/bin/naabu -host ${target} -p 1-65535 -o ${naabu_port_discovery_output}
 
 	if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 	then 
