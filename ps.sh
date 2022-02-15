@@ -18,8 +18,20 @@ output_directory="."
 port_scan_workflow="nmap2nmap"
 port_scan_workflows=(nmap2nmap naabu2nmap masscan2nmap)
 
-# Function to display the script usage
+display_banner() {
+echo -e ${blue}${bold}"
+                 _
+ _ __  ___   ___| |__
+| '_ \/ __| / __| '_ \\
+| |_) \__  ${red}_${blue}\__ \ | | |
+| .__/|___${red}(_)${blue}___/_| |_| ${yellow}v1.0.0${blue}
+|_|
+"${reset}
+}
+
 display_usage() {
+	display_banner
+
 	while read -r line
 	do
 		printf "%b\n" "${line}"
@@ -40,16 +52,6 @@ display_usage() {
 
 EOF
 }
-
-# display banner
-echo -e ${blue}${bold}"
-                 _
- _ __  ___   ___| |__
-| '_ \/ __| / __| '_ \\
-| |_) \__  ${red}_${blue}\__ \ | | |
-| .__/|___${red}(_)${blue}___/_| |_| ${yellow}v1.0.0${blue}
-|_|
-"${reset}
 
 # parse options
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
@@ -126,7 +128,7 @@ naabu_port_discovery_output="${output_directory}/${target}-naabu-port-discovery.
 
 if [ "${port_scan_workflow}" == "naabu2nmap" ]
 then
-	naabu -host ${target} -ports full -silent | tee ${naabu_port_discovery_output}
+	${HOME}/go/bin/naabu -host ${target} -ports full -silent | tee ${naabu_port_discovery_output}
 
 	if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 	then 
