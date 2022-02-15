@@ -15,8 +15,12 @@ script_file_name=${0##*/}
 keep=False
 target=False
 output_directory="."
+port_scan_workflows=(
+	nmap2nmap
+	naabu2nmap
+	masscan2nmap
+)
 port_scan_workflow="nmap2nmap"
-port_scan_workflows=(nmap2nmap naabu2nmap masscan2nmap)
 
 display_banner() {
 echo -e ${blue}${bold}"
@@ -53,7 +57,6 @@ display_usage() {
 EOF
 }
 
-# parse options
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
 do
 	case ${1}  in
@@ -93,18 +96,16 @@ do
 	shift
 done
 
-if [ "${UID}" -gt 0 ]
-then
-	echo -e "${blue}[${red}-${blue}]${reset} root privileges required!\n"
-	exit 1
-fi
-
-# ensure target(s) is provided
 if [ ${target} == False ]
 then
 	echo -e "${blue}[${red}-${blue}]${reset} failed! argument -t/--target is Required!\n"
 	exit 1
 fi
+
+# prompt for sudo password
+read -s -p "[sudo] password for ${USER}: " PASSWORD
+echo
+echo
 
 echo -e "[+] open port(s) discovery\n"
 
@@ -114,7 +115,7 @@ nmap_port_discovery_output="${output_directory}/${target}-nmap-port-discovery.xm
 
 if [ "${port_scan_workflow}" == "nmap2nmap" ]
 then
-	nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oX ${nmap_port_discovery_output}
+	echo "${PASSWORD}" | sudo -S nmap -Pn -sS -T4 -n --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -oX ${nmap_port_discovery_output}
 
 	if [ ! -f ${nmap_port_discovery_output} ]
 	then 
@@ -128,7 +129,7 @@ naabu_port_discovery_output="${output_directory}/${target}-naabu-port-discovery.
 
 if [ "${port_scan_workflow}" == "naabu2nmap" ]
 then
-	${HOME}/go/bin/naabu -host ${target} -ports full -silent | tee ${naabu_port_discovery_output}
+	echo "${PASSWORD}" | sudo -S ${HOME}/go/bin/naabu -host ${target} -port 1-65535 -silent | tee ${naabu_port_discovery_output}
 
 	if [ $(wc -l < ${naabu_port_discovery_output}) -eq 0 ]
 	then 
@@ -158,7 +159,7 @@ then
 
 		open_ports_comma_separeted=${open_ports_space_separeted// /,}
 
-		nmap -Pn -sS -sV -T4 -O -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
+		echo "${PASSWORD}" | sudo -S nmap -Pn -sS -sV -T4 -O -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
 	fi
 fi
 
@@ -191,7 +192,7 @@ then
 	then
 		ports_string="${ports_dictionary[@]}"
 
-		nmap -Pn -sS -sV -T4 -O -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
+		echo "${PASSWORD}" | sudo -S nmap -Pn -sS -sV -T4 -O -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
 	fi
 fi
 
