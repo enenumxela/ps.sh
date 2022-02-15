@@ -6,10 +6,10 @@ A wrapper around tools I use for port scanning - [nmap](https://github.com/nmap/
 
 ## Installation
 
-To get the script clone this repository:
+Run the installation script:
 
 ```bash
-$ git clone https://github.com/enenumxela/ps.sh.git
+curl -s https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
 ```
 
 ## Usage

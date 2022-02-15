@@ -156,7 +156,7 @@ then
 
 		open_ports_comma_separeted=${open_ports_space_separeted// /,}
 
-		nmap -Pn -sS -sV -T4 -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
+		nmap -Pn -sS -sV -T4 -O -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
 	fi
 fi
 
@@ -189,7 +189,7 @@ then
 	then
 		ports_string="${ports_dictionary[@]}"
 
-		nmap -Pn -sS -sV -T4 -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
+		nmap -Pn -sS -sV -T4 -O -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
 	fi
 fi
 
