@@ -43,13 +43,13 @@ display_usage() {
 	\r USAGE:
 	\r   ${script_file_name} [OPTIONS]
 
-	\rOptions:
-	\r   -t, --target \t target to enumerate
-	\r   -w, --workflow \t port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
-	\r                  \t (default: ${underline}${port_scan_workflow}${reset})
-	\r  -oD, --output-dir \t output directory path
-	\r   -k, --keep \t\t keep each tool's temp results
-	\r       --setup \t\t setup requirements for this script
+	\r Options:
+	\r   -t, --target \t target IP or domain
+	\r   -w, --workflow \t port scanning workflow (default: ${underline}${port_scan_workflow}${reset})
+	\r                  \t (choices: nmap2nmap, naabu2nmap or masscan2nmap)
+	\r   -k, --keep \t\t keep each workflow's step results
+	\r  -oD, --output-dir \t output directory path (default: ${underline}${output_directory}${reset})
+	\r       --setup \t\t install/update this script & depedencies
 	\r   -h, --help \t\t display this help message and exit
 
 	\r ${red}${bold}HAPPY HACKING ${yellow}:)${reset}
@@ -109,7 +109,7 @@ echo
 
 echo -e "[+] open port(s) discovery\n"
 
-# nmap2nmap workflow
+# 1. nmap2nmap open port(s) discovery workflow
 
 nmap_port_discovery_output="${output_directory}/${target}-nmap-port-discovery.xml"
 
@@ -123,7 +123,7 @@ then
 	fi
 fi
 
-# naabu2nmap workflow
+# 2. naabu2nmap open port(s) discovery workflow
 
 naabu_port_discovery_output="${output_directory}/${target}-naabu-port-discovery.txt"
 
@@ -137,13 +137,30 @@ then
 
 		echo -e "    [-] no open port discovered!"
 
-		rm -rf ${port_discovery_output_dir}
+		# rm -rf ${port_discovery_output_dir}
+	fi
+fi
+
+# 3. masscan2nmap open port(s) discovery workflow
+masscan_port_discovery_output="${output_directory}/${target}-masscan-port-discovery.txt"
+
+if [ "${port_scan_workflow}" == "masscan2nmap" ]
+then
+	echo "${PASSWORD}" | sudo -S masscan --ports 0-65535 ${target} --max-rate 1000 --open -oG ${masscan_port_discovery_output}
+
+	if [ $(wc -l < ${masscan_port_discovery_output}) -eq 0 ]
+	then 
+		skip=True
+
+		echo -e "    [-] no open port discovered!"
+
+		# rm -rf ${masscan_port_discovery_output}
 	fi
 fi
 
 service_discovery_output="${output_directory}/${target}"
 
-# nmap2nmap workflow
+# 1. nmap2nmap service(s) discovery workflow
 if [ "${port_scan_workflow}" == "nmap2nmap" ]
 then
 	if [ ! -f ${nmap_port_discovery_output} ]
@@ -163,7 +180,7 @@ then
 	fi
 fi
 
-# naabu2nmap workflow
+# 2. naabu2nmap service(s) discovery workflow
 if [ "${port_scan_workflow}" == "naabu2nmap" ]
 then
 	if [ ! -f ${naabu_port_discovery_output} ]
@@ -193,6 +210,26 @@ then
 		ports_string="${ports_dictionary[@]}"
 
 		echo "${PASSWORD}" | sudo -S nmap -Pn -sS -sV -T4 -O -n -p ${ports_string// /,} ${target} -oA ${service_discovery_output}
+	fi
+fi
+
+# 3. masscan2nmap service(s) discovery workflow
+if [ "${port_scan_workflow}" == "masscan2nmap" ]
+then
+	if [ ! -f ${masscan_port_discovery_output} ]
+	then
+		port_discovery
+	fi
+
+	open_ports_space_separeted="$(xmllint --xpath '//port/state[@state = "open" or @state = "closed" or @state = "unfiltered"]/../@portid' ${masscan_port_discovery_output} | awk -F\" '{ print $2 }' | tr '\n' ' ' |sed -e 's/[[:space:]]*$//')"
+
+	if [ ${#open_ports_space_separeted} -gt 0 ]
+	then
+		echo -e "\n[+] service(s) discovery\n"
+
+		open_ports_comma_separeted=${open_ports_space_separeted// /,}
+
+		echo "${PASSWORD}" | sudo -S nmap -Pn -sS -sV -T4 -O -n -p ${open_ports_comma_separeted} ${target} -oA ${service_discovery_output}
 	fi
 fi
 
