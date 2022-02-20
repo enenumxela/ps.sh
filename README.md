@@ -17,7 +17,7 @@ curl -s https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bas
 To display this script's help message, use the `-h` flag:
 
 ```bash
-./ps.sh -h
+ps.sh -h
 ```
 
 ```text
