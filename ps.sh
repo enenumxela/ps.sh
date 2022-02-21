@@ -104,6 +104,11 @@ then
 	exit 1
 fi
 
+if [ ! -d ${output_directory} ]
+then
+	mkdir -p ${output_directory}
+fi
+
 # STEP 1: open port discovery
 echo -e "[+] open port(s) discovery\n"
 
