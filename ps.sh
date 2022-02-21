@@ -40,20 +40,21 @@ display_usage() {
 	do
 		printf "%b\n" "${line}"
 	done <<-EOF
-	\r USAGE:
-	\r   ${script_file_name} [OPTIONS]
 
-	\r Options:
-	\r   -t, --target \t target IP or domain
-	\r  -tL, --target_list \t target list IP or domain
-	\r   -w, --workflow \t port scanning workflow (default: ${underline}${port_scan_workflow}${reset})
-	\r                  \t (choices: nmap2nmap, naabu2nmap or masscan2nmap)
-	\r   -k, --keep \t\t keep each workflow's step results
-	\r  -oD, --output-dir \t output directory path (default: ${underline}${output_directory}${reset})
-	\r       --setup \t\t install/update this script & depedencies
-	\r   -h, --help \t\t display this help message and exit
+	\rUSAGE:
+	\r  ${script_file_name} [OPTIONS]
 
-	\r ${red}${bold}HAPPY HACKING ${yellow}:)${reset}
+	\rOptions:
+	\r  -t, --target \t target IP or domain
+	\r -tL, --target_list \t target list IP or domain
+	\r  -w, --workflow \t port scanning workflow (default: ${underline}${port_scan_workflow}${reset})
+	\r                 \t (choices: nmap2nmap, naabu2nmap or masscan2nmap)
+	\r  -k, --keep \t\t keep each workflow's step results
+	\r -oD, --output-dir \t output directory path (default: ${underline}${output_directory}${reset})
+	\r      --setup \t\t install/update this script & depedencies
+	\r  -h, --help \t\t display this help message and exit
+
+	\r${red}${bold}HAPPY HACKING ${yellow}:)${reset}
 
 EOF
 }
