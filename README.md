@@ -28,19 +28,20 @@ ps.sh -h
 | .__/|___(_)___/_| |_| v1.0.0
 |_|
 
- USAGE:
-   ps.sh [OPTIONS]
+USAGE:
+  ps.sh [OPTIONS]
 
 Options:
-   -t, --target 	 target to enumerate
-   -w, --workflow 	 port scanning workflow [nmap2nmap|naabu2nmap|masscan2nmap]
-                  	 (default: nmap2nmap)
-  -oD, --output-dir 	 output directory path
-   -k, --keep 		 keep each tool's temp results
-       --setup 		 setup requirements for this script
-   -h, --help 		 display this help message and exit
+  -t, --target 	 target IP or domain
+ -tL, --target_list 	 target list IP or domain
+  -w, --workflow 	 port scanning workflow (default: nmap2nmap)
+                 	 (choices: nmap2nmap, naabu2nmap or masscan2nmap)
+  -k, --keep 		 keep each workflow's step results
+ -oD, --output-dir 	 output directory path (default: .)
+      --setup 		 install/update this script & depedencies
+  -h, --help 		 display this help message and exit
 
- HAPPY HACKING :)
+HAPPY HACKING :)
 
 ```
 
