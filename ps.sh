@@ -125,86 +125,88 @@ fi
 per_target_workflow() {
 	echo -e "\n${blue}[${green}+${blue}]${reset} TARGET: ${underline}${target}${reset}\n"
 
-	# STEP 1: open port discovery
-	echo -e "    ${blue}[${green}+${blue}]${reset} open port(s) discovery\n"
-
 	open_ports=()
 	open_ports_discovery_output=""
-
-	if [ "${port_scan_workflow}" == "nmap2nmap" ]
-	then
-		open_ports_discovery_output="${output_directory}/${target}-nmap-port-discovery.xml"
-
-		if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
-		then
-			sudo nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -Pn -oX ${open_ports_discovery_output}
-		else
-			echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
-		fi
-	fi
-
-	if [ "${port_scan_workflow}" == "naabu2nmap" ]
-	then
-		open_ports_discovery_output="${output_directory}/${target}-naabu-port-discovery.txt"
-
-		if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
-		then
-			sudo ${HOME}/go/bin/naabu -host ${target} -p 1-65535 -o ${open_ports_discovery_output}
-		else
-			echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
-		fi
-	fi
-
-	if [ "${port_scan_workflow}" == "masscan2nmap" ]
-	then
-		open_ports_discovery_output="${output_directory}/${target}-masscan-port-discovery.xml"
-
-		if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
-		then
-			sudo masscan --ports 0-65535 ${target} --max-rate 1000 -oX ${open_ports_discovery_output}
-		else
-			echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped...previous results found!"
-		fi
-	fi
-
-	# SETP 2: extract open ports from open port discovery output
-	if [ -f ${open_ports_discovery_output} ] && [ -s ${open_ports_discovery_output} ]
-	then
-		if [ "${port_scan_workflow}" == "masscan2nmap" ] || [ "${port_scan_workflow}" == "nmap2nmap" ]
-		then
-			open_ports="$(xmllint --xpath '//port/state[@state = "open" or @state = "closed" or @state = "unfiltered"]/../@portid' ${open_ports_discovery_output} | awk -F\" '{ print $2 }' | tr '\n' ' ' |sed -e 's/[[:space:]]*$//')"
-		elif [ "${port_scan_workflow}" == "naabu2nmap" ]
-		then
-			while IFS=: read ip port
-			do
-				if [[ ! "${open_ports[@]}" =~ "${port}" ]]
-				then
-					open_ports+=(${port})
-				fi
-			done <<<$(cat ${open_ports_discovery_output})
-		fi
-		
-	fi
-
-	# SETP 3: service discovery
-	echo -e "\n    ${blue}[${green}+${blue}]${reset} service(s) discovery\n"
-
 	service_discovery_output="${output_directory}/${target}"
 
-	if [ ${#open_ports} -le 0 ]
+	if [ ! -f ${service_discovery_output}.xml ] || [ ! -s ${service_discovery_output}.xml ]
 	then
-		skip=True
+		# STEP 1: open port discovery
+		echo -e "    ${blue}[${green}+${blue}]${reset} open port(s) discovery\n"
 
-		echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...no open ports discovered!"
+		if [ "${port_scan_workflow}" == "nmap2nmap" ]
+		then
+			open_ports_discovery_output="${output_directory}/${target}-nmap-port-discovery.xml"
 
-		rm -rf ${nmap_port_discovery_output}
+			if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
+			then
+				sudo nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -Pn -oX ${open_ports_discovery_output}
+			else
+				echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
+			fi
+		fi
+
+		if [ "${port_scan_workflow}" == "naabu2nmap" ]
+		then
+			open_ports_discovery_output="${output_directory}/${target}-naabu-port-discovery.txt"
+
+			if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
+			then
+				sudo ${HOME}/go/bin/naabu -host ${target} -p 1-65535 -o ${open_ports_discovery_output}
+			else
+				echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
+			fi
+		fi
+
+		if [ "${port_scan_workflow}" == "masscan2nmap" ]
+		then
+			open_ports_discovery_output="${output_directory}/${target}-masscan-port-discovery.xml"
+
+			if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
+			then
+				sudo masscan --ports 0-65535 ${target} --max-rate 1000 -oX ${open_ports_discovery_output}
+			else
+				echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped...previous results found!"
+			fi
+		fi
+
+		# SETP 2: extract open ports from open port discovery output
+		if [ -f ${open_ports_discovery_output} ] && [ -s ${open_ports_discovery_output} ]
+		then
+			if [ "${port_scan_workflow}" == "masscan2nmap" ] || [ "${port_scan_workflow}" == "nmap2nmap" ]
+			then
+				open_ports="$(xmllint --xpath '//port/state[@state = "open" or @state = "closed" or @state = "unfiltered"]/../@portid' ${open_ports_discovery_output} | awk -F\" '{ print $2 }' | tr '\n' ' ' |sed -e 's/[[:space:]]*$//')"
+			elif [ "${port_scan_workflow}" == "naabu2nmap" ]
+			then
+				while IFS=: read ip port
+				do
+					if [[ ! "${open_ports[@]}" =~ "${port}" ]]
+					then
+						open_ports+=(${port})
+					fi
+				done <<<$(cat ${open_ports_discovery_output})
+			fi
+			
+		fi
+
+		# SETP 3: service discovery
+		echo -e "\n    ${blue}[${green}+${blue}]${reset} service(s) discovery\n"
+
+		if [ ${#open_ports} -le 0 ]
+		then
+			echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...no open ports discovered!"
+
+			rm -rf ${nmap_port_discovery_output}
+		else
+			sudo nmap -T4 -A -p ${open_ports// /,} ${target} -Pn -oA ${service_discovery_output}
+		fi
+
+		if [ ${keep} == False ]
+		then
+			rm -rf ${output_directory}/*-port-discovery.*
+		fi
 	else
-		sudo nmap -T4 -A -p ${open_ports// /,} ${target} -Pn -oA ${service_discovery_output}
-	fi
-
-	if [ ${keep} == False ]
-	then
-		rm -rf ${output_directory}/*-port-discovery.*
+		echo -e "    ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
 	fi
 }
 
