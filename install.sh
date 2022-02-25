@@ -50,7 +50,7 @@ else
 fi
 
 # tr sed awk tee nmap naabu masscan xmllint
-sudo apt install -y -qq libxml2-utils 
+eval ${CMD_PREFIX} apt install -y -qq libxml2-utils 
 
 # golang
 
@@ -61,7 +61,6 @@ then
 	echo -e "\n [+] go${version}\n"
 
 	eval ${DOWNLOAD_CMD} https://golang.org/dl/go${version}.linux-amd64.tar.gz > /tmp/go${version}.linux-amd64.tar.gz
-	# curl -sL https://golang.org/dl/go${version}.linux-amd64.tar.gz -o /tmp/go${version}.linux-amd64.tar.gz
 
 	eval ${CMD_PREFIX} tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
 fi
