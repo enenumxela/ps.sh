@@ -71,7 +71,7 @@ do
 
 			if [ ! -f ${target_list} ] || [ ! -s ${target_list} ]
 			then
-				echo -e "${blue}[${red}-${blue}]${reset} failed!...Missing or Empty target list specified!"
+				echo -e "${blue}[${red}-${blue}]${reset} failed!...Missing or Empty target list specified!\n"
 				exit 1
 			fi
 
@@ -80,7 +80,7 @@ do
 		-w | --workflow)
 			if [[ ! " ${port_scan_workflows[@]} " =~ " ${2} " ]]
 			then
-				echo -e " ${blue}[${red}-${blue}]${reset} failed!...unknown workflow: ${2}"
+				echo -e " ${blue}[${red}-${blue}]${reset} failed!...unknown workflow: ${2}\n"
 				exit 1
 			fi
 			port_scan_workflow=${2}
@@ -117,6 +117,23 @@ then
 	exit 1
 fi
 
+if [ "$(logname)" != "${USER}" ]
+then
+	echo -e "${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
+	exit 1
+fi
+
+CMD_PREFIX=
+
+if [ ${UID} -gt 0 ] && [ -x "$(command -v sudo)" ]
+then
+	CMD_PREFIX="sudo"
+elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
+then
+	echo -e "${blue}[${red}-${blue}]${reset} failed!...\`sudo\` command not found!\n"
+	exit 1
+fi
+
 if [ ! -d ${output_directory} ]
 then
 	mkdir -p ${output_directory}
@@ -140,7 +157,7 @@ per_target_workflow() {
 
 			if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
 			then
-				sudo nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -Pn -oX ${open_ports_discovery_output}
+				eval ${CMD_PREFIX} nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p0- ${target} -Pn -oX ${open_ports_discovery_output}
 			else
 				echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
 			fi
@@ -152,7 +169,7 @@ per_target_workflow() {
 
 			if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
 			then
-				sudo ${HOME}/go/bin/naabu -host ${target} -p 1-65535 -o ${open_ports_discovery_output}
+				eval ${CMD_PREFIX} ${HOME}/go/bin/naabu -host ${target} -p 1-65535 -o ${open_ports_discovery_output}
 			else
 				echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped!...previous results found!"
 			fi
@@ -164,7 +181,7 @@ per_target_workflow() {
 
 			if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
 			then
-				sudo masscan --ports 0-65535 ${target} --max-rate 1000 -oX ${open_ports_discovery_output}
+				eval ${CMD_PREFIX} masscan --ports 0-65535 ${target} --max-rate 1000 -oX ${open_ports_discovery_output}
 			else
 				echo -e "        ${blue}[${yellow}*${blue}]${reset} skipped...previous results found!"
 			fi
@@ -198,7 +215,7 @@ per_target_workflow() {
 
 			rm -rf ${nmap_port_discovery_output}
 		else
-			sudo nmap -T4 -A -p ${open_ports// /,} ${target} -Pn -oA ${service_discovery_output}
+			eval ${CMD_PREFIX} nmap -T4 -A -p ${open_ports// /,} ${target} -Pn -oA ${service_discovery_output}
 		fi
 
 		if [ ${keep} == False ]
