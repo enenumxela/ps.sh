@@ -84,7 +84,7 @@ do
 
 			if [ ! -f ${target_list} ] || [ ! -s ${target_list} ]
 			then
-				echo -e "${blue}[${red}-${blue}]${reset} failed!...Missing or Empty target list specified!\n"
+				echo -e "\n${blue}[${red}-${blue}]${reset} failed!...Missing or Empty target list specified!\n"
 				exit 1
 			fi
 
@@ -93,7 +93,7 @@ do
 		-w | --workflow)
 			if [[ ! " ${port_scan_workflows[@]} " =~ " ${2} " ]]
 			then
-				echo -e " ${blue}[${red}-${blue}]${reset} failed!...unknown workflow: ${2}\n"
+				echo -e "\n${blue}[${red}-${blue}]${reset} failed!...unknown workflow: ${2}\n"
 				exit 1
 			fi
 			port_scan_workflow=${2}
@@ -126,13 +126,13 @@ display_banner
 
 if [ ${target} == False ] && [ ${target_list} == False ] 
 then
-	echo -e "${blue}[${red}-${blue}]${reset} failed!...Missing -t/--target or -tL/--target_list argument!\n"
+	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...Missing -t/--target or -tL/--target_list argument!\n"
 	exit 1
 fi
 
 if [ "$(logname)" != "${USER}" ]
 then
-	echo -e "${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
+	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
 	exit 1
 fi
 
@@ -143,7 +143,7 @@ then
 	CMD_PREFIX="sudo"
 elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
 then
-	echo -e "${blue}[${red}-${blue}]${reset} failed!...\`sudo\` command not found!\n"
+	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...\`sudo\` command not found!\n"
 	exit 1
 fi
 
