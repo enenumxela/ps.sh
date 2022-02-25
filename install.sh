@@ -9,6 +9,33 @@ green="\e[32m"
 yellow="\e[33m"
 underline="\e[4m"
 
+# Banner
+echo -e ${blue}${bold}"
+                 _
+ _ __  ___   ___| |__
+| '_ \/ __| / __| '_ \\
+| |_) \__  ${red}_${blue}\__ \ | | |
+| .__/|___${red}(_)${blue}___/_| |_| ${yellow}v1.0.0${blue}
+|_|
+"${reset}
+
+if [ "$(logname)" != "${USER}" ]
+then
+	echo -e "${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
+	exit 1
+fi
+
+CMD_PREFIX=
+
+if [ ${UID} -gt 0 ] && [ -x "$(command -v sudo)" ]
+then
+	CMD_PREFIX="sudo"
+elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
+then
+	echo -e "${blue}[${red}-${blue}]${reset} failed!...\`sudo\` command not found!\n"
+	exit 1
+fi
+
 DOWNLOAD_CMD=
 
 if command -v >&- curl
@@ -21,16 +48,6 @@ else
 	echo "[-] Could not find wget/cURL" >&2
 	exit 1
 fi
-
-# Banner
-echo -e ${blue}${bold}"
-                 _
- _ __  ___   ___| |__
-| '_ \/ __| / __| '_ \\
-| |_) \__  ${red}_${blue}\__ \ | | |
-| .__/|___${red}(_)${blue}___/_| |_| ${yellow}v1.0.0${blue}
-|_|
-"${reset}
 
 # tr sed awk tee nmap naabu masscan xmllint
 sudo apt install -y -qq libxml2-utils 
@@ -46,7 +63,7 @@ then
 	eval ${DOWNLOAD_CMD} https://golang.org/dl/go${version}.linux-amd64.tar.gz > /tmp/go${version}.linux-amd64.tar.gz
 	# curl -sL https://golang.org/dl/go${version}.linux-amd64.tar.gz -o /tmp/go${version}.linux-amd64.tar.gz
 
-	sudo tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
+	eval ${CMD_PREFIX} tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
 fi
 
 (grep -q "export PATH=\$PATH:/usr/local/go/bin" ~/.profile) || {
@@ -65,20 +82,20 @@ source ~/.profile
 
 echo -e "\n [+] nmap\n"
 
-sudo apt install -y -qq nmap
+eval ${CMD_PREFIX} apt install -y -qq nmap
 
 # naabu
 
 echo -e "\n [+] naabu\n"
 
-sudo apt install -y -qq libpcap-dev
+eval ${CMD_PREFIX} apt install -y -qq libpcap-dev
 go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 
 # masscan
 
 echo -e "\n [+] masscan\n"
 
-sudo apt install -y -qq masscan
+eval ${CMD_PREFIX} apt install -y -qq masscan
 
 script_directory="${HOME}/.local/bin"
 
@@ -100,5 +117,4 @@ fi
 
 eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${script_path}
 
-# curl -sL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh -o ${script_path}
 chmod u+x ${script_path}

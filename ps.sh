@@ -59,6 +59,19 @@ display_usage() {
 EOF
 }
 
+DOWNLOAD_CMD=
+
+if command -v >&- curl
+then
+	DOWNLOAD_CMD="curl --silent"
+elif command -v >&- wget
+then
+	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
+else
+	echo "[-] Could not find wget/cURL" >&2
+	exit 1
+fi
+
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
 do
 	case ${1}  in
@@ -94,7 +107,7 @@ do
 			keep=True
 		;;
 		--setup)
-			curl -sL https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
+			eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
 			exit 0
 		;;
 		-h | --help)
