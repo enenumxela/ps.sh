@@ -32,13 +32,13 @@ USAGE:
   ps.sh [OPTIONS]
 
 Options:
-  -t, --target 	 target IP or domain
- -tL, --target_list 	 target list IP or domain
+  -t, --target 		 target IP
+ -tL, --target_list 	 target IPs list
   -w, --workflow 	 port scanning workflow (default: nmap2nmap)
                  	 (choices: nmap2nmap, naabu2nmap or masscan2nmap)
   -k, --keep 		 keep each workflow's step results
  -oD, --output-dir 	 output directory path (default: .)
-      --setup 		 install/update this script & depedencies
+      --setup 		 install/update this script & dependencies
   -h, --help 		 display this help message and exit
 
 HAPPY HACKING :)
