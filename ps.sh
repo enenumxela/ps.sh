@@ -124,15 +124,15 @@ done
 
 display_banner
 
-if [ ${target} == False ] && [ ${target_list} == False ] 
-then
-	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...Missing -t/--target or -tL/--target_list argument!\n"
-	exit 1
-fi
-
 if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
 	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
+	exit 1
+fi
+
+if [ ${target} == False ] && [ ${target_list} == False ] 
+then
+	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...Missing -t/--target or -tL/--target_list argument!\n"
 	exit 1
 fi
 

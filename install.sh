@@ -45,7 +45,7 @@ elif command -v >&- wget
 then
 	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
 else
-	echo "[-] Could not find wget/cURL" >&2
+	echo "${blue}[${red}-${blue}]${reset} Could not find wget/cURL" >&2
 	exit 1
 fi
 
