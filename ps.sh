@@ -63,7 +63,7 @@ DOWNLOAD_CMD=
 
 if command -v >&- curl
 then
-	DOWNLOAD_CMD="curl --silent"
+	DOWNLOAD_CMD="curl -sL"
 elif command -v >&- wget
 then
 	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
