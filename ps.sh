@@ -130,7 +130,7 @@ then
 	exit 1
 fi
 
-if [ "$(logname)" != "${USER}" ]
+if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
 	echo -e "\n${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
 	exit 1

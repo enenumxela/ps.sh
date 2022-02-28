@@ -19,7 +19,7 @@ echo -e ${blue}${bold}"
 |_|
 "${reset}
 
-if [ "$(logname)" != "${USER}" ]
+if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
 	echo -e "${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
 	exit 1
