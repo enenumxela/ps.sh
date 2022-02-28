@@ -50,7 +50,7 @@ else
 fi
 
 # tr sed awk tee nmap naabu masscan xmllint
-eval ${CMD_PREFIX} apt install -y -qq libxml2-utils 
+eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils 
 
 # golang
 
@@ -81,20 +81,20 @@ source ~/.profile
 
 echo -e "\n [+] nmap\n"
 
-eval ${CMD_PREFIX} apt install -y -qq nmap
+eval ${CMD_PREFIX} apt-get install -y -qq nmap
 
 # naabu
 
 echo -e "\n [+] naabu\n"
 
-eval ${CMD_PREFIX} apt install -y -qq libpcap-dev
+eval ${CMD_PREFIX} apt-get install -y -qq libpcap-dev
 go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 
 # masscan
 
 echo -e "\n [+] masscan\n"
 
-eval ${CMD_PREFIX} apt install -y -qq masscan
+eval ${CMD_PREFIX} apt-get install -y -qq masscan
 
 script_directory="${HOME}/.local/bin"
 
