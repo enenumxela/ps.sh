@@ -54,7 +54,7 @@ eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils
 
 # golang
 
-if [ ! -x "$(command -v go)" ]
+if [ ! -x "$(command -v go)" ] && [ ! -x "$(command -v /usr/local/go/bin/go)"]
 then
 	version=1.17.6
 
