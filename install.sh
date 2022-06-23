@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
 
-bold="\e[1m"
-red="\e[31m"
-cyan="\e[36m"
-blue="\e[34m"
-reset="\e[0m"
-green="\e[32m"
-yellow="\e[33m"
-underline="\e[4m"
+RED="\e[31m"
+CYAN="\e[36m"
+BLUE="\e[34m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+
+BOLD="\e[1m"
+RESET="\e[0m"
+UNDERLINE="\e[4m"
 
 # Banner
-echo -e ${blue}${bold}"
+echo -e ${BLUE}${BOLD}"
                  _
  _ __  ___   ___| |__
 | '_ \/ __| / __| '_ \\
-| |_) \__  ${red}_${blue}\__ \ | | |
-| .__/|___${red}(_)${blue}___/_| |_| ${yellow}v1.0.0${blue}
+| |_) \__  ${RED}_${BLUE}\__ \ | | |
+| .__/|___${RED}(_)${BLUE}___/_| |_| ${YELLOW}v1.0.0${BLUE}
 |_|
-"${reset}
+"${RESET}
 
 if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
-	echo -e "${blue}[${red}-${blue}]${reset} failed!...ps.sh called with sudo!\n"
+	echo -e "${BLUE}[${RED}-${BLUE}]${RESET} failed!...ps.sh called with sudo!\n"
 	exit 1
 fi
 
@@ -32,7 +33,7 @@ then
 	CMD_PREFIX="sudo"
 elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
 then
-	echo -e "${blue}[${red}-${blue}]${reset} failed!...\`sudo\` command not found!\n"
+	echo -e "${BLUE}[${RED}-${BLUE}]${RESET} failed!...\`sudo\` command not found!\n"
 	exit 1
 fi
 
@@ -45,12 +46,12 @@ elif command -v >&- wget
 then
 	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
 else
-	echo "${blue}[${red}-${blue}]${reset} Could not find wget/cURL" >&2
+	echo "${BLUE}[${RED}-${BLUE}]${RESET} Could not find wget/cURL" >&2
 	exit 1
 fi
 
 # tr sed awk tee nmap naabu masscan xmllint
-eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils 
+eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils libpcap-dev
 
 # golang
 
@@ -87,7 +88,6 @@ eval ${CMD_PREFIX} apt-get install -y -qq nmap
 
 echo -e "\n [+] naabu\n"
 
-eval ${CMD_PREFIX} apt-get install -y -qq libpcap-dev
 go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 
 # masscan

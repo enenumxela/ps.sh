@@ -33,16 +33,15 @@ USAGE:
 
 Options:
   -t, --target 		 target IP
- -tL, --target_list 	 target IPs list
+ -tL, --target-list 	 target IPs list
   -w, --workflow 	 port scanning workflow (default: nmap2nmap)
                  	 (choices: nmap2nmap, naabu2nmap or masscan2nmap)
   -k, --keep 		 keep each workflow's step results
  -oD, --output-dir 	 output directory path (default: .)
-      --setup 		 install/update this script & dependencies
+      --update 		 update this script & dependencies
   -h, --help 		 display this help message and exit
 
 HAPPY HACKING :)
-
 ```
 
 ## Contribution
