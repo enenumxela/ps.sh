@@ -1,6 +1,6 @@
 # ps.sh
 
-![Made with Bash](https://img.shields.io/badge/made%20with-Bash-0040ff.svg) ![Maintenance](https://img.shields.io/badge/maintained%3F-yes-0040ff.svg) [![open issues](https://img.shields.io/github/issues-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:open) [![closed issues](https://img.shields.io/github/issues-closed-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:closed) [![license](https://img.shields.io/badge/license-MIT-gray.svg?colorB=0040FF)](https://github.com/enenumxela/ps.sh/blob/master/LICENSE) [![author](https://img.shields.io/badge/twitter-@enenumxela-0040ff.svg)](https://twitter.com/enenumxela)
+![Made with Bash](https://img.shields.io/badge/made%20with-Bash-0040ff.svg) ![Maintenance](https://img.shields.io/badge/maintained%3F-yes-0040ff.svg) [![open issues](https://img.shields.io/github/issues-raw/hueristiq/ps.sh.svg?style=flat&color=0040ff)](https://github.com/hueristiq/ps.sh/issues?q=is:issue+is:open) [![closed issues](https://img.shields.io/github/issues-closed-raw/hueristiq/ps.sh.svg?style=flat&color=0040ff)](https://github.com/hueristiq/ps.sh/issues?q=is:issue+is:closed) [![license](https://img.shields.io/badge/license-MIT-gray.svg?colorB=0040FF)](https://github.com/hueristiq/ps.sh/blob/master/LICENSE) [![author](https://img.shields.io/badge/twitter-@itshueristiq-0040ff.svg)](https://twitter.com/itshueristiq)
 
 A wrapper around tools I use for port scanning - [nmap](https://github.com/nmap/nmap), [naabu](https://github.com/projectdiscovery/naabu) & [masscan](https://github.com/robertdavidgraham/masscan) - the goal being reducing scan time, increasing scan efficiency and automating the workflow. 
 
@@ -9,7 +9,7 @@ A wrapper around tools I use for port scanning - [nmap](https://github.com/nmap/
 Run the installation script:
 
 ```bash
-curl -s https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
+curl -s https://raw.githubusercontent.com/hueristiq/ps.sh/main/install.sh | bash -
 ```
 
 ## Usage
@@ -46,4 +46,4 @@ HAPPY HACKING :)
 
 ## Contribution
 
-[Issues](https://github.com/enenumxela/ps.sh/issues) and [Pull Requests](https://github.com/enenumxela/ps.sh/pulls) are welcome!
+[Issues](https://github.com/hueristiq/ps.sh/issues) and [Pull Requests](https://github.com/hueristiq/ps.sh/pulls) are welcome!

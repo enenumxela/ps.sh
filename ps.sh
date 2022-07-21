@@ -246,7 +246,7 @@ do
 			keep=True
 		;;
 		--update)
-			eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
+			eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/hueristiq/ps.sh/main/install.sh | bash -
 			exit 0
 		;;
 		-h | --help)

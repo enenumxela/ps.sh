@@ -55,28 +55,27 @@ eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils libpcap-dev
 
 # golang
 
-if [ ! -x "$(command -v go)" ] && [ ! -x "$(command -v /usr/local/go/bin/go)" ]
+if [ ! -x "$(command -v go)" ]
 then
-	version=1.17.6
-
-	echo -e "\n [+] go${version}\n"
-
-	eval ${DOWNLOAD_CMD} https://golang.org/dl/go${version}.linux-amd64.tar.gz > /tmp/go${version}.linux-amd64.tar.gz
-
-	eval ${CMD_PREFIX} tar -xzf /tmp/go${version}.linux-amd64.tar.gz -C /usr/local
+	if [ ! -f /tmp/go1.18.linux-amd64.tar.gz ]
+	then
+		curl -sL https://golang.org/dl/go1.18.linux-amd64.tar.gz -o /tmp/go1.18.linux-amd64.tar.gz
+	fi
+	if [ -f /tmp/go1.18.linux-amd64.tar.gz ]
+	then
+		tar -xzf /tmp/go1.18.linux-amd64.tar.gz -C /usr/local
+		rm -rf /tmp/go1.18.linux-amd64.tar.gz
+	fi
 fi
 
 (grep -q "export PATH=\$PATH:/usr/local/go/bin" ~/.profile) || {
-	export PATH=$PATH:/usr/local/go/bin
 	echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.profile
 }
-
-(grep -q "export PATH=\$PATH:${HOME}/go/bin" ~/.profile) || {
-	export PATH=$PATH:${HOME}/go/bin
-	echo "export PATH=\$PATH:${HOME}/go/bin" >> ~/.profile
+(grep -q "export PATH=\$PATH:\${HOME}/go/bin" ~/.profile) || {
+	echo "export PATH=\$PATH:\${HOME}/go/bin" >> ~/.profile
 }
 
-source ~/.profile
+source ${HOME}/.profile
 
 # nmap
 
@@ -114,6 +113,6 @@ then
 	rm ${script_path}
 fi
 
-eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${script_path}
+eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/hueristiq/ps.sh/main/ps.sh > ${script_path}
 
 chmod u+x ${script_path}
