@@ -21,6 +21,7 @@ keep=False
 output_directory="."
 
 port_scan_workflows=(
+	smap2nmap
 	nmap2nmap
 	naabu2nmap
 	masscan2nmap
@@ -76,7 +77,7 @@ display_usage() {
 	\r  -t, --target \t\t target IP
 	\r -tL, --target-list \t target IPs list
 	\r  -w, --workflow \t port scanning workflow (default: ${UNDERLINE}${port_scan_workflow}${RESET})
-	\r                 \t (choices: nmap2nmap, naabu2nmap or masscan2nmap)
+	\r                 \t (choices: smap2nmap, nmap2nmap, naabu2nmap or masscan2nmap)
 	\r  -k, --keep \t\t keep each workflow's step results
 	\r -oD, --output-dir \t output directory path (default: ${UNDERLINE}${output_directory}${RESET})
 	\r      --update \t\t update this script & dependencies
@@ -121,6 +122,18 @@ port_scan() {
 			# STEP 1: open port discovery
 			echo -e "    ${BLUE}[${GREEN}+${BLUE}]${RESET} open port(s) discovery\n"
 
+			if [ "${2}" == "smap2nmap" ]
+			then
+				open_ports_discovery_output="${output_directory}/${1}-smap-port-discovery.xml"
+
+				if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
+				then
+					eval ${CMD_PREFIX} smap ${1} -oX ${open_ports_discovery_output}
+				else
+					echo -e "        ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...previous results found!"
+				fi
+			fi
+
 			if [ "${2}" == "nmap2nmap" ]
 			then
 				open_ports_discovery_output="${output_directory}/${1}-nmap-port-discovery.xml"
@@ -160,7 +173,7 @@ port_scan() {
 			# SETP 2: extract open ports from open port discovery output
 			if [ -f ${open_ports_discovery_output} ] && [ -s ${open_ports_discovery_output} ]
 			then
-				if [ "${2}" == "masscan2nmap" ] || [ "${2}" == "nmap2nmap" ]
+				if [ "${2}" == "smap2nmap" ] || [ "${2}" == "nmap2nmap" ] || [ "${2}" == "masscan2nmap" ]
 				then
 					open_ports="$(xmllint --xpath '//port/state[@state = "open" or @state = "closed" or @state = "unfiltered"]/../@portid' ${open_ports_discovery_output} | awk -F\" '{ print $2 }' | tr '\n' ' ' |sed -e 's/[[:space:]]*$//')"
 				elif [ "${2}" == "naabu2nmap" ]

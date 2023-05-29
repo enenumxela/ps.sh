@@ -57,14 +57,14 @@ eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils libpcap-dev
 
 if [ ! -x "$(command -v go)" ]
 then
-	if [ ! -f /tmp/go1.18.linux-amd64.tar.gz ]
+	if [ ! -f /tmp/go1.20.4.linux-amd64.tar.gz ]
 	then
-		curl -sL https://golang.org/dl/go1.18.linux-amd64.tar.gz -o /tmp/go1.18.linux-amd64.tar.gz
+		curl -sL https://golang.org/dl/go1.20.4.linux-amd64.tar.gz -o /tmp/go1.20.4.linux-amd64.tar.gz
 	fi
-	if [ -f /tmp/go1.18.linux-amd64.tar.gz ]
+	if [ -f /tmp/go1.20.4.linux-amd64.tar.gz ]
 	then
-		tar -xzf /tmp/go1.18.linux-amd64.tar.gz -C /usr/local
-		rm -rf /tmp/go1.18.linux-amd64.tar.gz
+		tar -xzf /tmp/go1.20.4.linux-amd64.tar.gz -C /usr/local
+		rm -rf /tmp/go1.20.4.linux-amd64.tar.gz
 	fi
 fi
 
@@ -76,6 +76,12 @@ fi
 }
 
 source ${HOME}/.profile
+
+# smap
+
+echo -e "\n [+] smap\n"
+
+go install -v github.com/s0md3v/smap/cmd/smap@latest
 
 # nmap
 
