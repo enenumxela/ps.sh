@@ -119,6 +119,6 @@ then
 	rm ${script_path}
 fi
 
-eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/hueristiq/ps.sh/main/ps.sh > ${script_path}
+eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${script_path}
 
 chmod u+x ${script_path}
