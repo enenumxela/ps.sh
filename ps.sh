@@ -1,46 +1,62 @@
 #!/usr/bin/env bash
 
+# Enable 'exit on error' behavior, which stops the script execution on any error.
 set -e
 
+# Get the script's file name (without the path) for use in usage messages.
 script_file_name=${0##*/}
 
+# Define color codes for terminal output formatting.
 RED="\e[31m"
 CYAN="\e[36m"
 BLUE="\e[34m"
 GREEN="\e[32m"
 YELLOW="\e[33m"
 
+# Define text style codes for terminal output.
 BOLD="\e[1m"
 UNDERLINE="\e[4m"
-RESET="\e[0m"
+RESET="\e[0m" # Reset all text formatting.
 
+# Initialize variables for target configuration.
 target=False
 target_list=False
 
+# Option to keep intermediate scan results.
 keep=False
+
+# Default output directory for saving results.
 output_directory="."
 
+# Define available port scanning workflows.
 port_scan_workflows=(
 	smap2nmap
 	nmap2nmap
 	naabu2nmap
 	masscan2nmap
 )
+# Set default workflow.
 port_scan_workflow="nmap2nmap"
 
+# Prefix commands with 'sudo' if needed.
 CMD_PREFIX=
 
+# Check if the script is running as root or has access to 'sudo'.
 if [ ${UID} -gt 0 ] && [ -x "$(command -v sudo)" ]
 then
 	CMD_PREFIX="sudo"
 elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
 then
+	# Exit if 'sudo' is not available.
 	echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...\`sudo\` command not found!\n"
+
 	exit 1
 fi
 
+# Determine the command for downloading files.
 DOWNLOAD_CMD=
 
+# Check if 'curl' or 'wget' is available for downloading.
 if command -v >&- curl
 then
 	DOWNLOAD_CMD="curl -sL"
@@ -48,23 +64,27 @@ elif command -v >&- wget
 then
 	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
 else
+	# Exit if neither 'curl' nor 'wget' is found.
 	echo "\n${BLUE}[${RED}-${BLUE}]${RESET} Could not find wget/cURL\n" >&2
+
 	exit 1
 fi
 
+# Function to display the script's banner.
 display_banner() {
 echo -e ${BLUE}${BOLD}"
-                 _
- _ __  ___   ___| |__
-| '_ \/ __| / __| '_ \\
-| |_) \__  ${RED}_${BLUE}\__ \ | | |
-| .__/|___${RED}(_)${BLUE}___/_| |_| ${YELLOW}v1.0.0${BLUE}
-|_|"${RESET}
+                                         _
+                         _ __  ___   ___| |__
+                        | '_ \/ __| / __| '_ \\
+                        | |_) \__  ${RED}_${BLUE}\__ \ | | |
+                        | .__/|___${RED}(_)${BLUE}___/_| |_|
+                        |_|              ${YELLOW}v1.0.0${BLUE}
+
+          ---====| A Port & Service Discovery Script |====---"${RESET}
 }
 
+# Function to show usage information for the script.
 display_usage() {
-	display_banner
-
 	while read -r line
 	do
 		printf "%b\n" "${line}"
@@ -88,25 +108,29 @@ display_usage() {
 EOF
 }
 
+# Function to validate if an input is a valid IP address.
 valid_ip() {
-	local  ip=$1
+	local  IP=$1
 	local  stat=1
 
-	if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]
+	if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]
 	then
 		OIFS=$IFS
 		IFS='.'
-		ip=($ip)
+		IP=($IP)
 		IFS=$OIFS
-		[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
-			&& ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+		[[ ${IP[0]} -le 255 && ${IP[1]} -le 255 \
+			&& ${IP[2]} -le 255 && ${IP[3]} -le 255 ]]
 		stat=$?
 	fi
 
-	return $stat
+	return $stat # Return 0 if valid, 1 if not.
 }
 
-# handle a single target port scanning workflow
+# Function to perform port scanning on a single target.
+# Arguments:
+#   $1 - IP address of the target.
+#   $2 - Workflow to use for port scanning.
 port_scan() {
 	if valid_ip $1
 	then
@@ -117,11 +141,13 @@ port_scan() {
 		local open_ports_discovery_output=""
 		local open_ports_service_discovery_output="${output_directory}/${1}"
 
+		# Skip scanning if results already exist.
 		if [ ! -f ${open_ports_service_discovery_output}.xml ] || [ ! -s ${open_ports_service_discovery_output}.xml ]
 		then
-			# STEP 1: open port discovery
+			# STEP 1: Perform open port discovery.
 			echo -e "    ${BLUE}[${GREEN}+${BLUE}]${RESET} open port(s) discovery\n"
 
+			# Execute the appropriate port discovery tool based on the workflow.
 			if [ "${2}" == "smap2nmap" ]
 			then
 				open_ports_discovery_output="${output_directory}/${1}-smap-port-discovery.xml"
@@ -170,7 +196,7 @@ port_scan() {
 				fi
 			fi
 
-			# SETP 2: extract open ports from open port discovery output
+			# STEP 2: Extract open ports from the discovery results.
 			if [ -f ${open_ports_discovery_output} ] && [ -s ${open_ports_discovery_output} ]
 			then
 				if [ "${2}" == "smap2nmap" ] || [ "${2}" == "nmap2nmap" ] || [ "${2}" == "masscan2nmap" ]
@@ -189,7 +215,7 @@ port_scan() {
 				
 			fi
 
-			# SETP 3: service discovery
+			# STEP 3: Perform service discovery on the identified open ports.
 			echo -e "\n    ${BLUE}[${GREEN}+${BLUE}]${RESET} service(s) discovery\n"
 
 			if [ ${#open_ports} -le 0 ]
@@ -200,32 +226,48 @@ port_scan() {
 			else
 				eval ${CMD_PREFIX} nmap -T4 -A -p ${open_ports// /,} ${1} -Pn -oA ${open_ports_service_discovery_output}
 			fi
-
-			if [ ${keep} == False ]
-			then
-				rm -rf ${output_directory}/*-port-discovery.*
-			fi
 		else
 			echo -e "    ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...previous results found!"
+		fi
+
+		# Clean up intermediate files if not needed.
+		if [ -f ${open_ports_discovery_output} ] && [ ${keep} == False ]
+		then
+			rm -rf ${open_ports_discovery_output}
 		fi
 	else
 		echo -e "\n${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...${UNDERLINE}${target}${RESET} is not/invalid IP Address!\n"
 	fi
 }
 
+# Main program execution starts here.
+
+# display the banner
+display_banner
+
+# Display help if no arguments are provided.
+if [[ -z ${@} ]]
+then
+	display_usage
+
+	exit 0
+fi
+
 # check then fail if script is called with sudo
 if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
 	echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...ps.sh called with sudo!\n"
+	
 	exit 1
 fi
 
-# parse command line arguments
+# Parse the command-line arguments.
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
 do
 	case ${1}  in
 		-t | --target)
 			target=${2}
+
 			shift
 		;;
 		-tL | --target-list)
@@ -243,6 +285,7 @@ do
 			if [[ ! " ${port_scan_workflows[@]} " =~ " ${2} " ]]
 			then
 				echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...unknown workflow: ${2}\n"
+
 				exit 1
 			fi
 
@@ -260,17 +303,21 @@ do
 		;;
 		--update)
 			eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/hueristiq/ps.sh/main/install.sh | bash -
+
 			exit 0
 		;;
 		-h | --help)
 			display_usage
+
 			exit 0
 		;;
 		*)
 			display_usage
+
 			exit 1
 		;;
 	esac
+
 	shift
 done
 
@@ -278,19 +325,17 @@ done
 if [ ${target} == False ] && [ ${target_list} == False ] 
 then
 	echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...Missing -t/--target or -tL/--target_list argument!\n"
+
 	exit 1
 fi
 
-# display the banner
-display_banner
-
-# make output directory if it doesn't exist
+# Create the output directory if it does not exist.
 if [ ! -d ${output_directory} ]
 then
 	mkdir -p ${output_directory}
 fi
 
-# handle the main workflow
+# Execute port scanning for the specified target or list of targets.
 if [ ${target} != False ]
 then
 	port_scan $target $port_scan_workflow

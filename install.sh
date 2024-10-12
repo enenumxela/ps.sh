@@ -12,17 +12,19 @@ UNDERLINE="\e[4m"
 
 # Banner
 echo -e ${BLUE}${BOLD}"
-                 _
- _ __  ___   ___| |__
-| '_ \/ __| / __| '_ \\
-| |_) \__  ${RED}_${BLUE}\__ \ | | |
-| .__/|___${RED}(_)${BLUE}___/_| |_| ${YELLOW}v1.0.0${BLUE}
-|_|
-"${RESET}
+                                         _
+                         _ __  ___   ___| |__
+                        | '_ \/ __| / __| '_ \\
+                        | |_) \__  ${RED}_${BLUE}\__ \ | | |
+                        | .__/|___${RED}(_)${BLUE}___/_| |_|
+                        |_|              ${YELLOW}v1.0.0${BLUE}
+
+          ---====| A Port & Service Discovery Script |====---"${RESET}
 
 if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
 	echo -e "${BLUE}[${RED}-${BLUE}]${RESET} failed!...ps.sh called with sudo!\n"
+
 	exit 1
 fi
 
@@ -34,6 +36,7 @@ then
 elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
 then
 	echo -e "${BLUE}[${RED}-${BLUE}]${RESET} failed!...\`sudo\` command not found!\n"
+
 	exit 1
 fi
 
@@ -47,6 +50,7 @@ then
 	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
 else
 	echo "${BLUE}[${RED}-${BLUE}]${RESET} Could not find wget/cURL" >&2
+
 	exit 1
 fi
 
@@ -57,14 +61,15 @@ eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils libpcap-dev
 
 if [ ! -x "$(command -v go)" ]
 then
-	if [ ! -f /tmp/go1.20.4.linux-amd64.tar.gz ]
+	if [ ! -f /tmp/go1.23.1.linux-amd64.tar.gz ]
 	then
-		curl -sL https://golang.org/dl/go1.20.4.linux-amd64.tar.gz -o /tmp/go1.20.4.linux-amd64.tar.gz
+		curl -sL https://golang.org/dl/go1.23.1.linux-amd64.tar.gz -o /tmp/go1.23.1.linux-amd64.tar.gz
 	fi
-	if [ -f /tmp/go1.20.4.linux-amd64.tar.gz ]
+	if [ -f /tmp/go1.23.1.linux-amd64.tar.gz ]
 	then
-		tar -xzf /tmp/go1.20.4.linux-amd64.tar.gz -C /usr/local
-		rm -rf /tmp/go1.20.4.linux-amd64.tar.gz
+		tar -xzf /tmp/go1.23.1.linux-amd64.tar.gz -C /usr/local
+
+		rm -rf /tmp/go1.23.1.linux-amd64.tar.gz
 	fi
 fi
 
@@ -101,16 +106,16 @@ echo -e "\n [+] masscan\n"
 
 eval ${CMD_PREFIX} apt-get install -y -qq masscan
 
+# ps.sh
+
+echo -e "\n [+] ps.sh\n"
+
 script_directory="${HOME}/.local/bin"
 
 if [ ! -d ${script_directory} ]
 then
 	mkdir -p ${script_directory}
 fi
-
-# ps.sh
-
-echo -e "\n [+] ps.sh\n"
 
 script_path="${script_directory}/ps.sh"
 
