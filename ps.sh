@@ -116,7 +116,7 @@ setup_script() {
 	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setting up script...done!\n"
 }
 
-setup_depedencies() {
+setup_dependencies() {
 	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setting up dependancies...started!\n"
 
 	eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils libpcap-dev
@@ -346,8 +346,8 @@ do
 
 			exit 0
 		;;
-		--setup-depedencies)
-			setup_depedencies
+		--setup-dependencies)
+			setup_dependencies
 
 			exit 0
 		;;
