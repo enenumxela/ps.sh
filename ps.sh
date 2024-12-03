@@ -1,62 +1,32 @@
 #!/usr/bin/env bash
 
-# Enable 'exit on error' behavior, which stops the script execution on any error.
 set -e
 
-# Get the script's file name (without the path) for use in usage messages.
-script_file_name=${0##*/}
-
-# Define color codes for terminal output formatting.
-RED="\e[31m"
-CYAN="\e[36m"
-BLUE="\e[34m"
-GREEN="\e[32m"
-YELLOW="\e[33m"
-
-# Define text style codes for terminal output.
-BOLD="\e[1m"
-UNDERLINE="\e[4m"
-RESET="\e[0m" # Reset all text formatting.
-
-# Initialize variables for target configuration.
-target=False
-target_list=False
-
-# Option to keep intermediate scan results.
-keep=False
-
-# Default output directory for saving results.
-output_directory="."
-
-# Define available port scanning workflows.
-port_scan_workflows=(
-	smap2nmap
-	nmap2nmap
-	naabu2nmap
-	masscan2nmap
+declare -A format=(
+	[color_blue]="\e[34m"
+	[color_cyan]="\e[36m"
+	[color_green]="\e[32m"
+	[color_red]="\e[31m"
+	[color_yellow]="\e[33m"
+	[bold]="\e[1m"
+	[underline]="\e[4m"
+	[reset]="\e[0m"
 )
-# Set default workflow.
-port_scan_workflow="nmap2nmap"
 
-# Prefix commands with 'sudo' if needed.
 CMD_PREFIX=
 
-# Check if the script is running as root or has access to 'sudo'.
 if [ ${UID} -gt 0 ] && [ -x "$(command -v sudo)" ]
 then
 	CMD_PREFIX="sudo"
 elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
 then
-	# Exit if 'sudo' is not available.
-	echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...\`sudo\` command not found!\n"
+	echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...\`sudo\` not found!\n"
 
 	exit 1
 fi
 
-# Determine the command for downloading files.
 DOWNLOAD_CMD=
 
-# Check if 'curl' or 'wget' is available for downloading.
 if command -v >&- curl
 then
 	DOWNLOAD_CMD="curl -sL"
@@ -64,51 +34,116 @@ elif command -v >&- wget
 then
 	DOWNLOAD_CMD="wget --quiet --show-progres --continue --output-document=-"
 else
-	# Exit if neither 'curl' nor 'wget' is found.
-	echo "\n${BLUE}[${RED}-${BLUE}]${RESET} Could not find wget/cURL\n" >&2
+	echo "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} Could not find wget/cURL\n" >&2
 
 	exit 1
 fi
 
-# Function to display the script's banner.
-display_banner() {
-echo -e ${BLUE}${BOLD}"
-                                         _
-                         _ __  ___   ___| |__
-                        | '_ \/ __| / __| '_ \\
-                        | |_) \__  ${RED}_${BLUE}\__ \ | | |
-                        | .__/|___${RED}(_)${BLUE}___/_| |_|
-                        |_|              ${YELLOW}v1.0.0${BLUE}
+# --- FUNCTIONS ---------------------------------------------------------------------------------------------------------
 
-          ---====| A Port & Service Discovery Script |====---"${RESET}
+# Function to display the script's banner.
+display_script_banner() {
+echo -e ${format[bold]}${format[color_blue]}"
+                                          _
+                          _ __  ___   ___| |__
+                         | '_ \/ __| / __| '_ \\
+                         | |_) \__  ${format[color_red]}_${format[color_blue]}\__ \ | | |
+                         | .__/|___${format[color_red]}(_)${format[color_blue]}___/_| |_|
+                         |_|              ${format[color_red]}v1.0.0${format[color_green]}
+
+              ---====| ${format[color_blue]}A Service Discovery Script${format[color_green]} |====---
+                      ---====| ${format[color_blue]}with <3...${format[color_green]} |====---
+               ---====| ${format[color_blue]}...by Alex (${format[color_red]}@enenumxela${format[color_blue]})${format[color_green]} |====---
+"${format[reset]}
 }
 
-# Function to show usage information for the script.
-display_usage() {
+display_script_usage() {
 	while read -r line
 	do
 		printf "%b\n" "${line}"
 	done <<-EOF
-
 	\rUSAGE:
-	\r  ${script_file_name} [OPTIONS]
+	\r  ${0##*/} [OPTIONS]
 
-	\rOptions:
-	\r  -t, --target \t\t target IP
-	\r -tL, --target-list \t target IPs list
-	\r  -w, --workflow \t port scanning workflow (default: ${UNDERLINE}${port_scan_workflow}${RESET})
-	\r                 \t (choices: smap2nmap, nmap2nmap, naabu2nmap or masscan2nmap)
-	\r  -k, --keep \t\t keep each workflow's step results
-	\r -oD, --output-dir \t output directory path (default: ${UNDERLINE}${output_directory}${RESET})
-	\r      --update \t\t update this script & dependencies
-	\r  -h, --help \t\t display this help message and exit
+	\rOPTIONS:
 
-	\r${RED}${BOLD}HAPPY HACKING ${YELLOW}:)${RESET}
+	\r INPUT:
+	\r  -t, --target \t\t\t target IP
+	\r  -l, --list \t\t\t\t target IPs list file
+
+	\r WORKFLOW:
+	\r  -w, --workflow \t\t discovery workflow (default: ${format[underline]}${workflow}${format[reset]})
+	\r      --workflows \t\t list supported workflows
+
+	\r OUPUT:
+	\r  -k, --keep \t\t\t\t keep each workflow's step results
+	\r  -O, --output-directory \t output directory path (default: \$PWD)
+
+	\r SETUP:
+	\r      --setup-script \t\t setup ${0##*/} (install|update)
+	\r      --setup-dependencies \t setup ${0##*/} dependencies
+
+	\r HELP:
+	\r  -h, --help \t\t\t\t display this help message
 
 EOF
 }
 
-# Function to validate if an input is a valid IP address.
+setup_script() {
+	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setting up script...started!\n"
+
+	script_directory="${HOME}/.local/bin"
+
+	if [ ! -d ${script_directory} ]
+	then
+		mkdir -p ${script_directory}
+	fi
+
+	script_path="${script_directory}/ps.sh"
+
+	if [ -e "${script_path}" ]
+	then
+		rm ${script_path}
+	fi
+
+	eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${script_path}
+
+	if [ -f ${script_path} ]
+	then
+		chmod u+x ${script_path}
+	fi
+
+	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setting up script...done!\n"
+}
+
+setup_depedencies() {
+	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setting up dependancies...started!\n"
+
+	eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils libpcap-dev
+
+	if [ ! -x "$(command -v nmap)" ]
+	then
+		eval ${CMD_PREFIX} apt-get install -y -qq nmap
+	fi
+
+	if [ ! -x "$(command -v naabu)" ]
+	then
+		eval ${DOWNLOAD_CMD} https://github.com/projectdiscovery/naabu/releases/download/v2.3.3/naabu_2.3.3_linux_amd64.zip >> /tmp/naabu.zip
+
+		if [ -f /tmp/naabu.zip ]
+		then
+			unzip /tmp/naabu.zip -d /tmp && ${CMD_PREFIX} mv /tmp/naabu /usr/local/bin/
+		fi
+	fi
+
+	if [ ! -x "$(command -v masscan)" ]
+	then
+		eval ${CMD_PREFIX} apt-get install -y -qq masscan
+	fi
+
+	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setting up dependancies...done!\n"
+}
+
 valid_ip() {
 	local  IP=$1
 	local  stat=1
@@ -134,7 +169,7 @@ valid_ip() {
 port_scan() {
 	if valid_ip $1
 	then
-		echo -e "\n${BLUE}[${GREEN}+${BLUE}]${RESET} TARGET: ${UNDERLINE}${1}${RESET}\n"
+		echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Discovery for ${format[bold]}${format[underline]}${1}${format[reset]}...started!\n"
 
 		local open_ports=()
 
@@ -144,21 +179,7 @@ port_scan() {
 		# Skip scanning if results already exist.
 		if [ ! -f ${open_ports_service_discovery_output}.xml ] || [ ! -s ${open_ports_service_discovery_output}.xml ]
 		then
-			# STEP 1: Perform open port discovery.
-			echo -e "    ${BLUE}[${GREEN}+${BLUE}]${RESET} open port(s) discovery\n"
-
-			# Execute the appropriate port discovery tool based on the workflow.
-			if [ "${2}" == "smap2nmap" ]
-			then
-				open_ports_discovery_output="${output_directory}/${1}-smap-port-discovery.xml"
-
-				if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
-				then
-					eval ${CMD_PREFIX} smap ${1} -oX ${open_ports_discovery_output}
-				else
-					echo -e "        ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...previous results found!"
-				fi
-			fi
+			echo -e "    ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Open Port(s) Discovery\n"
 
 			if [ "${2}" == "nmap2nmap" ]
 			then
@@ -168,7 +189,7 @@ port_scan() {
 				then
 					eval ${CMD_PREFIX} nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p 0-65535 ${1} -Pn -oX ${open_ports_discovery_output}
 				else
-					echo -e "        ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...previous results found!"
+					echo -e "        ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...previous results found!"
 				fi
 			fi
 
@@ -180,7 +201,7 @@ port_scan() {
 				then
 					eval ${CMD_PREFIX} ${HOME}/go/bin/naabu -host ${1} -p 0-65535 -Pn -o ${open_ports_discovery_output}
 				else
-					echo -e "        ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...previous results found!"
+					echo -e "        ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...previous results found!"
 				fi
 			fi
 
@@ -192,14 +213,13 @@ port_scan() {
 				then
 					eval ${CMD_PREFIX} masscan --ports 0-65535 ${1} --max-rate 1000 -oX ${open_ports_discovery_output}
 				else
-					echo -e "        ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped...previous results found!"
+					echo -e "        ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped...previous results found!"
 				fi
 			fi
 
-			# STEP 2: Extract open ports from the discovery results.
 			if [ -f ${open_ports_discovery_output} ] && [ -s ${open_ports_discovery_output} ]
 			then
-				if [ "${2}" == "smap2nmap" ] || [ "${2}" == "nmap2nmap" ] || [ "${2}" == "masscan2nmap" ]
+				if [ "${2}" == "nmap2nmap" ] || [ "${2}" == "masscan2nmap" ]
 				then
 					open_ports="$(xmllint --xpath '//port/state[@state = "open" or @state = "closed" or @state = "unfiltered"]/../@portid' ${open_ports_discovery_output} | awk -F\" '{ print $2 }' | tr '\n' ' ' |sed -e 's/[[:space:]]*$//')"
 				elif [ "${2}" == "naabu2nmap" ]
@@ -215,53 +235,60 @@ port_scan() {
 				
 			fi
 
-			# STEP 3: Perform service discovery on the identified open ports.
-			echo -e "\n    ${BLUE}[${GREEN}+${BLUE}]${RESET} service(s) discovery\n"
+			echo -e "\n    ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Service(s) Discovery\n"
 
 			if [ ${#open_ports} -le 0 ]
 			then
-				echo -e "        ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...no open ports discovered!"
+				echo -e "        ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...no open ports discovered!"
 
 				rm -rf ${nmap_port_discovery_output}
 			else
 				eval ${CMD_PREFIX} nmap -T4 -A -p ${open_ports// /,} ${1} -Pn -oA ${open_ports_service_discovery_output}
 			fi
 		else
-			echo -e "    ${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...previous results found!"
+			echo -e "    ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...previous results found!"
 		fi
 
-		# Clean up intermediate files if not needed.
 		if [ -f ${open_ports_discovery_output} ] && [ ${keep} == False ]
 		then
 			rm -rf ${open_ports_discovery_output}
 		fi
+
+		echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Discovery for ${format[bold]}${format[underline]}${1}${format[reset]}...done!\n"
 	else
-		echo -e "\n${BLUE}[${YELLOW}*${BLUE}]${RESET} skipped!...${UNDERLINE}${target}${RESET} is not/invalid IP Address!\n"
+		echo -e "\n${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...${format[underline]}${target}${format[reset]} is not/invalid IP Address!\n"
 	fi
 }
 
-# Main program execution starts here.
+# --- MAIN --------------------------------------------------------------------------------------------------------------
 
-# display the banner
-display_banner
+display_script_banner
 
-# Display help if no arguments are provided.
 if [[ -z ${@} ]]
 then
-	display_usage
+	display_script_usage
 
 	exit 0
 fi
 
-# check then fail if script is called with sudo
 if [ "${SUDO_USER:-$USER}" != "${USER}" ]
 then
-	echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...ps.sh called with sudo!\n"
+	echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...ps.sh shouldn't be called with sudo!\n"
 	
 	exit 1
 fi
 
-# Parse the command-line arguments.
+target=False
+target_list=False
+workflow="nmap2nmap"
+workflow_list=(
+	nmap2nmap
+	naabu2nmap
+	masscan2nmap
+)
+output_directory="${PWD}"
+keep=False
+
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
 do
 	case ${1}  in
@@ -270,49 +297,67 @@ do
 
 			shift
 		;;
-		-tL | --target-list)
+		-l | --list)
 			target_list=${2}
 
 			if [ ! -f ${target_list} ] || [ ! -s ${target_list} ]
 			then
-				echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...Missing or Empty target list specified!\n"
+				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Missing or Empty target list specified!\n"
+
 				exit 1
 			fi
 
 			shift
 		;;
 		-w | --workflow)
-			if [[ ! " ${port_scan_workflows[@]} " =~ " ${2} " ]]
+			if [[ ! " ${workflow_list[@]} " =~ " ${2} " ]]
 			then
-				echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...unknown workflow: ${2}\n"
+				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...unknown workflow: ${2}\n"
 
 				exit 1
 			fi
 
-			port_scan_workflow=${2}
+			workflow=${2}
 
 			shift
 		;;
-		-oD | --output-dir)
-			output_directory="${2}"
+		--workflows)
+			echo -e "Supported workflows:"
 
-			shift
+			echo
+			for workflow in ${workflow_list[@]}
+			do
+				echo -e " ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} ${workflow}"
+			done
+			echo
+
+			exit 0
 		;;
 		-k | --keep)
 			keep=True
 		;;
-		--update)
-			eval ${DOWNLOAD_CMD} https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
+		-O | --output-directory)
+			output_directory="${2}"
+
+			shift
+		;;
+		--setup-script)
+			setup_script
+
+			exit 0
+		;;
+		--setup-depedencies)
+			setup_depedencies
 
 			exit 0
 		;;
 		-h | --help)
-			display_usage
+			display_script_usage
 
 			exit 0
 		;;
 		*)
-			display_usage
+			display_script_usage
 
 			exit 1
 		;;
@@ -321,29 +366,26 @@ do
 	shift
 done
 
-# check then fail if both target and target list are missing
 if [ ${target} == False ] && [ ${target_list} == False ] 
 then
-	echo -e "\n${BLUE}[${RED}-${BLUE}]${RESET} failed!...Missing -t/--target or -tL/--target_list argument!\n"
+	echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Missing -t/--target or -tL/--target_list argument!\n"
 
 	exit 1
 fi
 
-# Create the output directory if it does not exist.
 if [ ! -d ${output_directory} ]
 then
 	mkdir -p ${output_directory}
 fi
 
-# Execute port scanning for the specified target or list of targets.
 if [ ${target} != False ]
 then
-	port_scan $target $port_scan_workflow
+	port_scan $target $workflow
 elif [ ${target_list} != False ]
 then
-	for target in $(cat ${target_list}| sort -u)
+	for target in $(cat ${target_list} | sort -u)
 	do
-		port_scan $target $port_scan_workflow
+		port_scan $target $workflow
 	done
 fi
 

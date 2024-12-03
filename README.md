@@ -2,7 +2,7 @@
 
 ![Made with Bash](https://img.shields.io/badge/made%20with-Bash-0040ff.svg) ![Maintenance](https://img.shields.io/badge/maintained%3F-yes-0040ff.svg) [![open issues](https://img.shields.io/github/issues-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:open) [![closed issues](https://img.shields.io/github/issues-closed-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:closed) [![license](https://img.shields.io/badge/license-MIT-gray.svg?colorB=0040FF)](https://github.com/enenumxela/ps.sh/blob/master/LICENSE)
 
-`ps.sh` is a bash script that automates the process of port scanning and service discovery on specified target hosts. The aim of the scripts is reducing scan time, increasing scan efficiency and automating the workflow.
+`ps.sh` is a bash script that automates the process of service discovery on specified target hosts. The aim of the scripts is reducing scan time, increasing scan efficiency and automating the workflow.
 
 ## Resource
 
@@ -12,12 +12,12 @@
 * [Contributing](#contributing)
 * [Licensing](#licensing)
 * [Credits](#credits)
-    * [Contributors](#contributors)
+	* [Contributors](#contributors)
+	* [Dependencies](#dependencies)
 
 ## Features
 
 * Automated port scanning using various workflows:
-	* `smap2nmap`: Use Smap for port discovery, followed by Nmap for service discovery.
 	* `nmap2nmap`: Use Nmap for both port discovery and service discovery.
 	* `naabu2nmap`: Use Naabu for port discovery, followed by Nmap for service discovery.
 	* `masscan2nmap`: Use Masscan for port discovery, followed by Nmap for service discovery.
@@ -27,10 +27,24 @@
 
 ## Installation
 
-Run the installation script:
+To install `ps.sh`:
+
+- ... with `curl`:
+
+	```bash
+	bash -c "$(curl -fsSL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh)" -- --setup-script
+	```
+
+- ...with `wget`:
+
+	```bash
+	bash -c "$(wget -qO- https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh)" -- --setup-script
+	```
+
+After install, you can check if the script is installed and accessible globally by running:
 
 ```bash
-curl -s https://raw.githubusercontent.com/enenumxela/ps.sh/main/install.sh | bash -
+ps.sh --help
 ```
 
 ## Usage
@@ -41,31 +55,46 @@ To display this script's help message, use the `-h` flag:
 ps.sh -h
 ```
 
+Here's what the help message looks like:
+
 ```text
 
-                                         _
-                         _ __  ___   ___| |__
-                        | '_ \/ __| / __| '_ \
-                        | |_) \__  _\__ \ | | |
-                        | .__/|___(_)___/_| |_|
-                        |_|              v1.0.0
+                                          _
+                          _ __  ___   ___| |__
+                         | '_ \/ __| / __| '_ \
+                         | |_) \__  _\__ \ | | |
+                         | .__/|___(_)___/_| |_|
+                         |_|              v1.0.0
 
-          ---====| A Port & Service Discovery Script |====---
+              ---====| A Service Discovery Script |====---
+                      ---====| with <3... |====---
+               ---====| ...by Alex (@enenumxela) |====---
 
 USAGE:
   ps.sh [OPTIONS]
 
-Options:
-  -t, --target           target IP
- -tL, --target-list      target IPs list
-  -w, --workflow         port scanning workflow (default: nmap2nmap)
-                         (choices: smap2nmap, nmap2nmap, naabu2nmap or masscan2nmap)
-  -k, --keep             keep each workflow's step results
- -oD, --output-dir       output directory path (default: .)
-      --update           update this script & dependencies
-  -h, --help             display this help message and exit
+OPTIONS:
 
-HAPPY HACKING :)
+ INPUT:
+  -t, --target 				target IP
+  -l, --list 				target IPs list file
+
+ WORKFLOW:
+  -w, --workflow 			discovery workflow (default: nmap2nmap)
+      --workflows 			list supported workflows
+
+ OUPUT:
+  -k, --keep 				keep each workflow's step results
+  -O, --output-directory 		output directory path (default: $PWD)
+
+ SETUP:
+      --setup-script 			setup ps.sh (install|update)
+      --setup-dependencies 		setup ps.sh dependencies
+
+ HELP:
+  -h, --help 				display this help message
+
+
 ```
 
 ## Contributing
@@ -86,4 +115,4 @@ A huge thanks to all the contributors who have helped make `ps.sh` what it is to
 
 ### Dependencies
 
-[masscan](https://github.com/robertdavidgraham/masscan) ◇ [naabu](https://github.com/projectdiscovery/naabu) ◇ [nmap](https://github.com/nmap/nmap) ◇ [smap](https://github.com/s0md3v/smap)
+[masscan](https://github.com/robertdavidgraham/masscan) ◇ [naabu](https://github.com/projectdiscovery/naabu) ◇ [nmap](https://github.com/nmap/nmap)
