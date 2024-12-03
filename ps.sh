@@ -101,7 +101,7 @@ setup_script() {
 
 	script_path="${script_directory}/ps.sh"
 
-	if [ -e "${script_path}" ]
+	if [ -f "${script_path}" ]
 	then
 		rm ${script_path}
 	fi
