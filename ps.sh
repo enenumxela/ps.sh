@@ -199,7 +199,7 @@ port_scan() {
 
 				if [ ! -f ${open_ports_discovery_output} ] || [ ! -s ${open_ports_discovery_output} ]
 				then
-					eval ${CMD_PREFIX} ${HOME}/go/bin/naabu -host ${1} -p 0-65535 -Pn -o ${open_ports_discovery_output}
+					eval ${CMD_PREFIX} naabu -host ${1} -p 0-65535 -Pn -o ${open_ports_discovery_output}
 				else
 					echo -e "        ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...previous results found!"
 				fi
