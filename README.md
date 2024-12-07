@@ -41,12 +41,6 @@ To install `ps.sh`:
 	bash -c "$(wget -qO- https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh)" -- --setup-script
 	```
 
-After install, you can check if the script is installed and accessible globally by running:
-
-```bash
-ps.sh --help
-```
-
 ## Usage
 
 To display this script's help message, use the `-h` flag:
