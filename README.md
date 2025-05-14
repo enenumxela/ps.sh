@@ -52,7 +52,6 @@ ps.sh -h
 Here's what the help message looks like:
 
 ```text
-
                                           _
                           _ __  ___   ___| |__
                          | '_ \/ __| / __| '_ \
@@ -70,24 +69,23 @@ USAGE:
 OPTIONS:
 
  INPUT:
-  -t, --target 				target IP
-  -l, --list 				target IPs list file
+  -t, --target 			 target IP
+  -l, --list 			 target IPs list file
 
  WORKFLOW:
-  -w, --workflow 			discovery workflow (default: nmap2nmap)
-      --workflows 			list supported workflows
+  -w, --workflow 		 discovery workflow (default: nmap2nmap)
+      --workflows 		 list supported workflows
 
  OUPUT:
-  -k, --keep 				keep each workflow's step results
-  -O, --output-directory 		output directory path (default: $PWD)
+  -k, --keep 			 keep each workflow's step results
+  -O, --output-directory 	 output directory path (default: $PWD)
 
  SETUP:
-      --setup-script 			setup ps.sh (install|update)
-      --setup-dependencies 		setup ps.sh dependencies
+      --setup-script 		 setup ps.sh (install|update)
+      --setup-dependencies 	 setup ps.sh dependencies
 
  HELP:
-  -h, --help 				display this help message
-
+  -h, --help 			 display this help message
 
 ```
 

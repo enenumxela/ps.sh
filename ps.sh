@@ -39,9 +39,6 @@ else
 	exit 1
 fi
 
-# --- FUNCTIONS ---------------------------------------------------------------------------------------------------------
-
-# Function to display the script's banner.
 display_script_banner() {
 echo -e ${format[bold]}${format[color_blue]}"
                                           _
@@ -69,14 +66,14 @@ display_script_usage() {
 
 	\r INPUT:
 	\r  -t, --target \t\t\t target IP
-	\r  -l, --list \t\t\t\t target IPs list file
+	\r  -l, --list \t\t\t target IPs list file
 
 	\r WORKFLOW:
 	\r  -w, --workflow \t\t discovery workflow (default: ${format[underline]}${workflow}${format[reset]})
 	\r      --workflows \t\t list supported workflows
 
 	\r OUPUT:
-	\r  -k, --keep \t\t\t\t keep each workflow's step results
+	\r  -k, --keep \t\t\t keep each workflow's step results
 	\r  -O, --output-directory \t output directory path (default: \$PWD)
 
 	\r SETUP:
@@ -84,7 +81,7 @@ display_script_usage() {
 	\r      --setup-dependencies \t setup ${0##*/} dependencies
 
 	\r HELP:
-	\r  -h, --help \t\t\t\t display this help message
+	\r  -h, --help \t\t\t display this help message
 
 EOF
 }
@@ -176,7 +173,6 @@ port_scan() {
 		local open_ports_discovery_output=""
 		local open_ports_service_discovery_output="${output_directory}/${1}"
 
-		# Skip scanning if results already exist.
 		if [ ! -f ${open_ports_service_discovery_output}.xml ] || [ ! -s ${open_ports_service_discovery_output}.xml ]
 		then
 			echo -e "    ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Open Port(s) Discovery\n"
@@ -259,8 +255,6 @@ port_scan() {
 		echo -e "\n${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...${format[underline]}${target}${format[reset]} is not/invalid IP Address!\n"
 	fi
 }
-
-# --- MAIN --------------------------------------------------------------------------------------------------------------
 
 display_script_banner
 
