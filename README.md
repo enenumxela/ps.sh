@@ -52,39 +52,25 @@ ps.sh -h
 Here's what the help message looks like:
 
 ```text
-                                          _
-                          _ __  ___   ___| |__
-                         | '_ \/ __| / __| '_ \
-                         | |_) \__  _\__ \ | | |
-                         | .__/|___(_)___/_| |_|
-                         |_|              v1.0.0
-
-              ---====| A Service Discovery Script |====---
-                      ---====| with <3... |====---
-               ---====| ...by Alex (@enenumxela) |====---
+                 _
+ _ __  ___   ___| |__
+| '_ \/ __| / __| '_ \
+| |_) \__  _\__ \ | | |
+| .__/|___(_)___/_| |_|
+|_|              v1.0.0
 
 USAGE:
   ps.sh [OPTIONS]
 
 OPTIONS:
-
- INPUT:
   -t, --target 			 target IP
-  -l, --list 			 target IPs list file
-
- WORKFLOW:
-  -w, --workflow 		 discovery workflow (default: nmap2nmap)
+  -l, --list 			 target IPs file path
       --workflows 		 list supported workflows
-
- OUPUT:
+  -w, --workflow 		 discovery workflow (default: nmap2nmap)
   -k, --keep 			 keep each workflow's step results
   -O, --output-directory 	 output directory path (default: $PWD)
-
- SETUP:
       --setup-script 		 setup ps.sh (install|update)
       --setup-dependencies 	 setup ps.sh dependencies
-
- HELP:
   -h, --help 			 display this help message
 
 ```

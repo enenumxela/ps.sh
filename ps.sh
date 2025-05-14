@@ -41,16 +41,12 @@ fi
 
 display_script_banner() {
 echo -e ${format[bold]}${format[color_blue]}"
-                                          _
-                          _ __  ___   ___| |__
-                         | '_ \/ __| / __| '_ \\
-                         | |_) \__  ${format[color_red]}_${format[color_blue]}\__ \ | | |
-                         | .__/|___${format[color_red]}(_)${format[color_blue]}___/_| |_|
-                         |_|              ${format[color_red]}v1.0.0${format[color_green]}
-
-              ---====| ${format[color_blue]}A Service Discovery Script${format[color_green]} |====---
-                      ---====| ${format[color_blue]}with <3...${format[color_green]} |====---
-               ---====| ${format[color_blue]}...by Alex (${format[color_red]}@enenumxela${format[color_blue]})${format[color_green]} |====---
+                 _
+ _ __  ___   ___| |__
+| '_ \/ __| / __| '_ \\
+| |_) \__  ${format[color_red]}_${format[color_blue]}\__ \ | | |
+| .__/|___${format[color_red]}(_)${format[color_blue]}___/_| |_|
+|_|              ${format[color_red]}v1.0.0${format[color_green]}
 "${format[reset]}
 }
 
@@ -63,24 +59,14 @@ display_script_usage() {
 	\r  ${0##*/} [OPTIONS]
 
 	\rOPTIONS:
-
-	\r INPUT:
 	\r  -t, --target \t\t\t target IP
-	\r  -l, --list \t\t\t target IPs list file
-
-	\r WORKFLOW:
-	\r  -w, --workflow \t\t discovery workflow (default: ${format[underline]}${workflow}${format[reset]})
+	\r  -l, --list \t\t\t target IPs file path
 	\r      --workflows \t\t list supported workflows
-
-	\r OUPUT:
+	\r  -w, --workflow \t\t discovery workflow (default: ${format[underline]}${workflow}${format[reset]})
 	\r  -k, --keep \t\t\t keep each workflow's step results
 	\r  -O, --output-directory \t output directory path (default: \$PWD)
-
-	\r SETUP:
 	\r      --setup-script \t\t setup ${0##*/} (install|update)
 	\r      --setup-dependencies \t setup ${0##*/} dependencies
-
-	\r HELP:
 	\r  -h, --help \t\t\t display this help message
 
 EOF
