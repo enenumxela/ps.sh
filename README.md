@@ -29,13 +29,13 @@ To install `ps.sh`:
 - ... with `curl`:
 
 	```bash
-	curl -fsSL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${HOME}/.local/bin/ps.sh && chmod u+x ${HOME}/.local/bin/ps.sh && ${HOME}/.local/bin/ps.sh --setup
+	F=${HOME}/.local/bin/ps.sh; curl -fsSL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${F} && chmod u+x ${F} && ${F} --setup
 	```
 
 - ...with `wget`:
 
 	```bash
-	wget -qO- https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${HOME}/.local/bin/ps.sh && chmod u+x ${HOME}/.local/bin/ps.sh && ${HOME}/.local/bin/ps.sh --setup
+	F=${HOME}/.local/bin/ps.sh; wget -qO- https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${F} && chmod u+x ${F} && ${F} --setup
 	```
 
 ## Usage
