@@ -17,13 +17,10 @@
 
 ## Features
 
-* Automated port scanning using various workflows:
+* Automated service discovery using various workflows:
 	* `nmap2nmap`: Use Nmap for both port discovery and service discovery.
-	* `naabu2nmap`: Use Naabu for port discovery, followed by Nmap for service discovery.
 	* `masscan2nmap`: Use Masscan for port discovery, followed by Nmap for service discovery.
-* Service discovery to identify open services on the detected ports.
 * Multiple target support - Scan a single target or a list of targets.
-* Script auto-update support to keep the script and its dependencies up-to-date.
 
 ## Installation
 
@@ -32,13 +29,13 @@ To install `ps.sh`:
 - ... with `curl`:
 
 	```bash
-	bash -c "$(curl -fsSL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh)" -- --setup-script
+	curl -fsSL https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${HOME}/.local/bin/ps.sh && chmod u+x ${HOME}/.local/bin/ps.sh && ${HOME}/.local/bin/ps.sh --setup
 	```
 
 - ...with `wget`:
 
 	```bash
-	bash -c "$(wget -qO- https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh)" -- --setup-script
+	wget -qO- https://raw.githubusercontent.com/enenumxela/ps.sh/main/ps.sh > ${HOME}/.local/bin/ps.sh && chmod u+x ${HOME}/.local/bin/ps.sh && ${HOME}/.local/bin/ps.sh --setup
 	```
 
 ## Usage
@@ -60,9 +57,7 @@ Here's what the help message looks like:
                          | .__/|___(_)___/_| |_|
                          |_|              v1.0.0
 
-              ---====| A Service Discovery Script |====---
-                      ---====| with <3... |====---
-               ---====| ...by Alex (@enenumxela) |====---
+              ---====| A Service Discovery Script. |====---
 
 USAGE:
   ps.sh [OPTIONS]
@@ -70,24 +65,21 @@ USAGE:
 OPTIONS:
 
  INPUT:
-  -t, --target 				target IP
-  -l, --list 				target IPs list file
+  -t, --target                   target IP
+  -l, --list                     target IPs list file
 
  WORKFLOW:
-  -w, --workflow 			discovery workflow (default: nmap2nmap)
-      --workflows 			list supported workflows
+  -w, --workflow                 discovery workflow (default: nmap2nmap)
+      --workflows                supported discovery workflows
 
  OUPUT:
-  -k, --keep 				keep each workflow's step results
-  -O, --output-directory 		output directory path (default: $PWD)
+  -O, --output-directory         output directory path (default: $PWD)
 
  SETUP:
-      --setup-script 			setup ps.sh (install|update)
-      --setup-dependencies 		setup ps.sh dependencies
+      --setup                    setup ps.sh dependencies
 
  HELP:
-  -h, --help 				display this help message
-
+  -h, --help                     display this help message
 
 ```
 
@@ -109,4 +101,4 @@ A huge thanks to all the contributors who have helped make `ps.sh` what it is to
 
 ### Dependencies
 
-[masscan](https://github.com/robertdavidgraham/masscan) ◇ [naabu](https://github.com/projectdiscovery/naabu) ◇ [nmap](https://github.com/nmap/nmap)
+[masscan](https://github.com/robertdavidgraham/masscan) ◇ [nmap](https://github.com/nmap/nmap)
