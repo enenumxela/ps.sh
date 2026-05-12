@@ -47,8 +47,6 @@ usage() {
 	\r  ${0##*/} [OPTIONS]
 
 	\rOPTIONS:
-
-	\r INPUT:
 	\r  -t, --target \t\t\t target IP
 	\r  -l, --list \t\t\t target IPs list file
 
