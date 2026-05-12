@@ -181,8 +181,6 @@ discover() {
 	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Discovery for ${format[bold]}${target}${format[reset]}...done!\n"
 }
 
-banner
-
 target="False"
 target_list="False"
 
@@ -195,6 +193,8 @@ workflow_list=(
 )
 
 output_directory="${PWD}"
+
+banner
 
 if [[ -z ${@} ]]
 then
