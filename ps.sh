@@ -48,20 +48,13 @@ usage() {
 
 	\rOPTIONS:
 	\r  -t, --target \t\t\t target IP
-	\r  -l, --list \t\t\t target IPs list file
-
-	\r WORKFLOW:
+	\r  -l, --list \t\t\t target IPs file
+	\r  -p, --ports \t\t\t target port(s) (default: ${format[underline]}${ports}${format[reset]})
 	\r  -w, --workflow \t\t discovery workflow (default: ${format[underline]}${workflow}${format[reset]})
 	\r      --workflows \t\t supported discovery workflows
-
-	\r OUPUT:
-	\r  -O, --output-directory \t output directory path (default: \$PWD)
-
-	\r SETUP:
-	\r      --setup \t\t\t setup ${0##*/} dependencies
-
-	\r HELP:
-	\r  -h, --help \t\t\t display this help message
+	\r  -O, --output-directory \t output directory (default: \$PWD)
+	\r      --setup \t\t\t setup ${0##*/}
+	\r  -h, --help \t\t\t display help
 
 EOF
 }
@@ -101,9 +94,22 @@ is_a_valid_IP() {
 	return $stat
 }
 
+is_a_valid_ports() {
+	local ports=$1
+	local stat=0
+
+	if [[ ! "$ports" =~ ^[0-9,\-]+$ ]]
+	then
+		stat=1
+	fi
+
+	return $stat
+}
+
 discover() {
 	local target=$1
-	local workflow=$2
+	local ports=$2
+	local workflow=$3
 
 	if ! is_a_valid_IP "$target"
 	then
@@ -127,7 +133,7 @@ discover() {
 
 			if [[ ! -s "${port_s_discovery_output}" ]]
 			then
-				${CMD_PREFIX} nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p- -Pn "${target}" -oX "${port_s_discovery_output}"
+				${CMD_PREFIX} nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p ${ports} -Pn "${target}" -oX "${port_s_discovery_output}"
 			else
 				echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped! Previous results found."
 			fi
@@ -142,7 +148,7 @@ discover() {
 
 			if [[ ! -s "${port_s_discovery_output}" ]]
 			then
-				${CMD_PREFIX} masscan --ports 0-65535 "${target}" --max-rate 1000 -oX "${port_s_discovery_output}"
+				${CMD_PREFIX} masscan --ports ${ports} "${target}" --max-rate 1000 -oX "${port_s_discovery_output}"
 			else
 				echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped! Previous results found."
 			fi
@@ -179,6 +185,8 @@ banner
 
 target="False"
 target_list="False"
+
+ports="0-65535"
 
 workflow="nmap2nmap"
 workflow_list=(
@@ -218,6 +226,18 @@ do
 				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Missing or Empty target list specified!\n"
 
 				exit 1
+			fi
+
+			shift
+		;;
+		-p | --ports)
+			ports="${2}"
+
+			if ! is_a_valid_ports "$ports"
+			then
+				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Invalid ports specification!\n"
+
+				return 1
 			fi
 
 			shift
@@ -285,12 +305,12 @@ fi
 
 if [ ${target} != "False" ]
 then
-	discover "${target}" "${workflow}"
+	discover "${target}" "${ports}" "${workflow}"
 elif [ ${target_list} != "False" ]
 then
 	while read -r target
 	do
-		discover "${target}" "${workflow}"
+		discover "${target}" "${ports}" "${workflow}"
 	done < <(sort -u "${target_list}")
 fi
 

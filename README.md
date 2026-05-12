@@ -63,23 +63,14 @@ USAGE:
   ps.sh [OPTIONS]
 
 OPTIONS:
-
- INPUT:
   -t, --target                   target IP
-  -l, --list                     target IPs list file
-
- WORKFLOW:
+  -l, --list                     target IPs file
+  -p, --ports                    target port(s) (default: 0-65535)
   -w, --workflow                 discovery workflow (default: nmap2nmap)
       --workflows                supported discovery workflows
-
- OUPUT:
-  -O, --output-directory         output directory path (default: $PWD)
-
- SETUP:
-      --setup                    setup ps.sh dependencies
-
- HELP:
-  -h, --help                     display this help message
+  -O, --output-directory         output directory (default: $PWD)
+      --setup                    setup ps.sh
+  -h, --help                     display help
 
 ```
 
