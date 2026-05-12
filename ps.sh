@@ -114,7 +114,7 @@ discover() {
 
 	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Discovery for ${format[bold]}${format[underline]}${target}${format[reset]}...started!\n"
 
-	local ports=()
+	local open_ports=()
 
 	local port_s_discovery_output=""
 	local service_s_discovery_output="${output_directory}/${target}"
@@ -134,7 +134,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				ports=($(xmllint --xpath '//port/state[@state="open"]/../@portid' "${port_s_discovery_output}" 2>/dev/null | awk -F'"' '{print $2}'))
+				open_ports=($(xmllint --xpath '//port/state[@state="open"]/../@portid' "${port_s_discovery_output}" 2>/dev/null | awk -F'"' '{print $2}'))
 			fi
 			;;
 		masscan2nmap)
@@ -149,7 +149,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				ports=($(xmllint --xpath '//port/state[@state="open"]/../@portid' "${port_s_discovery_output}" 2>/dev/null | awk -F'"' '{print $2}'))
+				open_ports=($(xmllint --xpath '//port/state[@state="open"]/../@portid' "${port_s_discovery_output}" 2>/dev/null | awk -F'"' '{print $2}'))
 			fi
 			;;
 	esac
@@ -160,13 +160,13 @@ discover() {
 	then
 		echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} No open ports found."
 	else
-		ports=($(printf '%s\n' "${ports[@]}" | sort -nu))
+		open_ports=($(printf '%s\n' "${open_ports[@]}" | sort -nu))
 
-		local port_list=$(IFS=,; echo "${ports[*]}")
+		local open_ports_list=$(IFS=,; echo "${open_ports[*]}")
 
 		if [[ ! -s "${service_s_discovery_output}.xml" ]]
 		then
-			$CMD_PREFIX nmap -T4 -A -p "${port_list}" "${target}" -Pn -oA "${service_s_discovery_output}"
+			$CMD_PREFIX nmap -T4 -A -p "${open_ports_list}" "${target}" -Pn -oA "${service_s_discovery_output}"
 		else
 			echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped! Previous results found."
 		fi
