@@ -29,14 +29,14 @@ fi
 
 banner() {
 echo -e ${fmt[bold]}${fmt[blue]}"
-                                            _
-                            _ __  ___   ___| |__
-                           | '_ \/ __| / __| '_ \\
-                           | |_) \__  ${fmt[red]}_${fmt[blue]}\__ \ | | |
-                           | .__/|___${fmt[red]}(_)${fmt[blue]}___/_| |_|
-                           |_|              ${fmt[red]}v1.0.0${fmt[green]}
+                                                  _
+                                  _ __  ___   ___| |__
+                                 | '_ \/ __| / __| '_ \\
+                                 | |_) \__  ${fmt[red]}_${fmt[blue]}\__ \ | | |
+                                 | .__/|___${fmt[red]}(_)${fmt[blue]}___/_| |_|
+                                 |_|              ${fmt[red]}v1.0.0${fmt[green]}
 
-<>--------------------<><> ${fmt[blue]}A Port Scanning Script.${fmt[green]} <><>--------------------<>
+<>--------------------------<><> ${fmt[blue]}A Port Scanning Script.${fmt[green]} <><>--------------------------<>
 "${fmt[reset]}
 }
 
