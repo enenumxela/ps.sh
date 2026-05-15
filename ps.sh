@@ -13,18 +13,6 @@ declare -A fmt=(
 	[reset]="\e[0m"
 )
 
-log_info() {
-	printf "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} %s\n" "$*" >&2
-}
-
-log_warn() {
-	printf "${fmt[blue]}[${fmt[yellow]}*${fmt[blue]}]${fmt[reset]} %s\n" "$*" >&2
-}
-
-log_error() {
-	printf "${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} %s\n" "$*" >&2
-}
-
 CMD_PREFIX=
 
 if [[ ${UID} -gt 0 ]]
@@ -33,7 +21,7 @@ then
 	then
 		CMD_PREFIX="sudo"
 	else
-		log_error "failed!...running as root and \`sudo\` was not found."
+		echo -e "\n${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} failed!...running as root and \`sudo\` was not found.\n"
 
 		exit 1
 	fi
@@ -74,7 +62,7 @@ EOF
 }
 
 setup() {
-	log_info "Setting up..."
+	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Setting up..."
 
 	local pkgs=()
 
@@ -89,7 +77,7 @@ setup() {
 		$CMD_PREFIX apt-get install -y -qq "${pkgs[@]}"
 	fi
 
-	log_info "Setting up...done!"
+	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Setting up...done!"
 }
 
 is_valid_IP() {
@@ -129,7 +117,7 @@ ports_expand() {
 
 			if (( start > end ))
 			then
-				log_error "failed!...invalid port range \"${start}-${end}\"."
+				echo -e "\n${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} failed!...invalid port range \"${start}-${end}\".\n"
 
 				exit 1
 			fi
@@ -142,7 +130,7 @@ ports_expand() {
 		then
 			printf '%d\n' "$part"
 		else
-			log_error "failed!...invalid port specification \"${part}\"."
+			echo -e "\n${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} failed!...invalid port specification \"${part}\".\n"
 
 			exit 1
 		fi
@@ -249,19 +237,19 @@ discover() {
 
 	if ! is_valid_IP "$target"
 	then
-		log_warn "skipped!...invalid IP \"${target}\"."
+		echo -e "\n${fmt[blue]}[${fmt[color_yellow]}*${fmt[blue]}]${fmt[reset]} skipped!...invalid IP \"${target}\".\n"
 
 		return 0
 	fi
 
-	printf "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...\n" >&2
+	echo -e "\n${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Discovery for ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...\n"
 
 	local -a open_ports=()
 
 	local port_s_discovery_output=""
 	local service_s_discovery_output="${output}/${target}"
 
-	log_info "\nPort(s) Discovery\n"
+	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Port(s) Discovery"
 
 	case "${workflow}" in
 		nc2nmap)
@@ -269,7 +257,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				log_warn "skipped! ... previous results found."
+				echo -e " ${fmt[blue]}[${fmt[color_yellow]}*${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
 				run_nc_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
@@ -284,7 +272,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				log_warn "skipped!...previous results found."
+				echo -e " ${fmt[blue]}[${fmt[color_yellow]}*${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
 				run_nmap_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
@@ -299,7 +287,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				log_warn "skipped!...previous results found."
+				echo -e " ${fmt[blue]}[${fmt[color_yellow]}*${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
 				run_masscan_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
@@ -311,13 +299,13 @@ discover() {
 			;;
 	esac
 
-	log_info "\nService(s) Discovery\n"
+	echo -e "\n ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Service(s) Discovery"
 
 	if [[ ! -s "${service_s_discovery_output}.xml" ]]
 	then
 		if [[ ${#open_ports[@]} -eq 0 ]]
 		then
-			log_warn "skipped!...no open ports found."
+			echo -e " ${fmt[blue]}[${fmt[color_yellow]}*${fmt[blue]}]${fmt[reset]} skipped!...no open ports found."
 		else
 			mapfile -t open_ports < <(printf '%s\n' "${open_ports[@]}" | sort -nu)
 
@@ -328,10 +316,10 @@ discover() {
 			$CMD_PREFIX nmap -T4 -A --max-retries 2 -p "${open_ports_csv}" -Pn "${target}" -oA "${service_s_discovery_output}"
 		fi
 	else
-		log_warn "skipped!...previous results found."
+		echo -e " ${fmt[blue]}[${fmt[color_yellow]}*${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 	fi
 
-	printf "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} ${fmt[bold]}${target}${fmt[reset]}...done!\n\n" >&2
+	echo -e "\n${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Discovery for ${fmt[bold]}${target}${fmt[reset]}...done!\n"
 }
 
 readonly workflows=(
@@ -342,9 +330,13 @@ readonly workflows=(
 
 target="__none__"
 target_list="__none__"
+
 ports="0-65535"
+
 workflow="nmap2nmap"
+
 nc_jobs="$(( $(nproc 2>/dev/null || echo 4) * 10 ))"
+
 output="${PWD}"
 
 banner
@@ -358,7 +350,7 @@ fi
 
 if [[ -n "${SUDO_USER:-}" ]]
 then
-	log_error "failed!...${0##*/} shouldn't be run with sudo, it escalates privileges internally when needed."
+	echo -e "\n${fmt[blue]}[${fmt[color_red]}-${fmt[blue]}]${fmt[reset]} failed!...${0##*/} shouldn't be run with sudo, it escalates privileges internally when needed.\n"
 
 	exit 1
 fi
@@ -376,7 +368,7 @@ do
 
 			if [[ ! -f "$target_list" || ! -s "$target_list" ]]
 			then
-				log_error "failed!...missing or empty IPs file."
+				echo -e "\n${fmt[blue]}[${fmt[color_red]}-${fmt[blue]}]${fmt[reset]} failed!...missing or empty IPs file.\n"
 
 				exit 1
 			fi
@@ -388,7 +380,7 @@ do
 
 			if ! [[ "${ports}" =~ ^[0-9,\-]+$ ]]
 			then
-				log_error "failed!...invalid ports."
+				echo -e "\n${fmt[blue]}[${fmt[color_red]}-${fmt[blue]}]${fmt[reset]} failed!...invalid ports.\n"
 
 				exit 1
 			fi
@@ -398,7 +390,7 @@ do
 		-w | --workflow)
 			if [[ ! " ${workflows[@]} " =~ " ${2} " ]]
 			then
-				log_error "failed!...unknown workflow \"${2}\", see --workflows."
+				echo -e "\n${fmt[blue]}[${fmt[color_red]}-${fmt[blue]}]${fmt[reset]} failed!...unknown workflow \"${2}\", see --workflows.\n"
 
 				exit 1
 			fi
@@ -408,13 +400,14 @@ do
 			shift
 		;;
 		--workflows)
-			printf "Supported workflows:\n\n"
+			echo -e "Supported workflows:"
 
-			for w in "${workflows[@]}"; do
-				printf " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} %s\n" "${w}"
+			echo
+			for workflow in ${workflows[@]}
+			do
+				echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} ${workflow}"
 			done
-
-			printf '\n'
+			echo
 
 			exit 0
 		;;
@@ -423,7 +416,7 @@ do
 
 			if ! [[ "${nc_jobs}" =~ ^[0-9]+$ ]] || (( nc_jobs < 1 ))
 			then
-				log_error "failed!...jobs must be a positive integer."
+				echo -e "\n${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} failed!...jobs must be a positive integer.\n"
 
 				exit 1
 			fi
@@ -446,7 +439,7 @@ do
 			exit 0
 		;;
 		*)
-			log_error "failed!...invalid option \"${1}\"."
+			echo -e "\n${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} failed!...invalid option \"${1}\".\n"
 
 			usage
 
@@ -459,7 +452,7 @@ done
 
 if [ "${target}" == "__none__" ] && [ "${target_list}" == "__none__" ]
 then
-	log_error "failed!...missing -t/--target or -l/--list argument."
+	echo -e "\n${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} failed!...missing -t/--target or -l/--list argument.\n"
 
 	exit 1
 fi
