@@ -2,7 +2,7 @@
 
 ![Made with Bash](https://img.shields.io/badge/made%20with-Bash-0040ff.svg) ![Maintenance](https://img.shields.io/badge/maintained%3F-yes-0040ff.svg) [![open issues](https://img.shields.io/github/issues-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:open) [![closed issues](https://img.shields.io/github/issues-closed-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:closed) [![license](https://img.shields.io/badge/license-MIT-gray.svg?colorB=0040FF)](https://github.com/enenumxela/ps.sh/blob/master/LICENSE)
 
-`ps.sh` is a bash script that automates the process of service discovery on specified target hosts. The aim of the scripts is reducing scan time, increasing scan efficiency and automating the workflow.
+`ps.sh` is a bash script that automates port scanning on specified target host(s). The aim of the scripts is reducing scan time, increasing scan efficiency and automating the workflow.
 
 ## Resource
 

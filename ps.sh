@@ -29,14 +29,14 @@ fi
 
 banner() {
 echo -e ${fmt[bold]}${fmt[blue]}"
-                                          _
-                          _ __  ___   ___| |__
-                         | '_ \/ __| / __| '_ \\
-                         | |_) \__  ${fmt[red]}_${fmt[blue]}\__ \ | | |
-                         | .__/|___${fmt[red]}(_)${fmt[blue]}___/_| |_|
-                         |_|              ${fmt[red]}v1.0.0${fmt[green]}
+                                            _
+                            _ __  ___   ___| |__
+                           | '_ \/ __| / __| '_ \\
+                           | |_) \__  ${fmt[red]}_${fmt[blue]}\__ \ | | |
+                           | .__/|___${fmt[red]}(_)${fmt[blue]}___/_| |_|
+                           |_|              ${fmt[red]}v1.0.0${fmt[green]}
 
-              ---====| ${fmt[blue]}A Service Discovery Script.${fmt[green]} |====---
+<>--------------------<><> ${fmt[blue]}A Port Scanning Script.${fmt[green]} <><>--------------------<>
 "${fmt[reset]}
 }
 
@@ -249,7 +249,7 @@ discover() {
 	local port_s_discovery_output=""
 	local service_s_discovery_output="${output}/${target}"
 
-	echo -e " ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Port(s) Discovery"
+	echo -e "    ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Port(s) Discovery\n"
 
 	case "${workflow}" in
 		nc2nmap)
@@ -257,7 +257,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				echo -e " ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
+				echo -e "\n        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found.\n"
 			else
 				run_nc_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
@@ -272,7 +272,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				echo -e " ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
+				echo -e "\n        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found.\n"
 			else
 				run_nmap_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
@@ -287,7 +287,7 @@ discover() {
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				echo -e " ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
+				echo -e "\n        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found.\n"
 			else
 				run_masscan_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
@@ -299,13 +299,13 @@ discover() {
 			;;
 	esac
 
-	echo -e "\n ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Service(s) Discovery"
+	echo -e "\n     ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Service(s) Discovery\n"
 
 	if [[ ! -s "${service_s_discovery_output}.xml" ]]
 	then
 		if [[ ${#open_ports[@]} -eq 0 ]]
 		then
-			echo -e " ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...no open ports found."
+			echo -e "\n        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...no open ports found.\n"
 		else
 			mapfile -t open_ports < <(printf '%s\n' "${open_ports[@]}" | sort -nu)
 
@@ -316,7 +316,7 @@ discover() {
 			$CMD_PREFIX nmap -T4 -A --max-retries 2 -p "${open_ports_csv}" -Pn "${target}" -oA "${service_s_discovery_output}"
 		fi
 	else
-		echo -e " ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
+		echo -e "\n        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found.\n"
 	fi
 
 	echo -e "\n${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...done!\n"
