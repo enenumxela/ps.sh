@@ -261,7 +261,7 @@ discover() {
 	local port_s_discovery_output=""
 	local service_s_discovery_output="${output}/${target}"
 
-	log_info "Port(s) Discovery"
+	log_info "\nPort(s) Discovery\n"
 
 	case "${workflow}" in
 		nc2nmap)
@@ -311,7 +311,7 @@ discover() {
 			;;
 	esac
 
-	log_info "Service(s) Discovery"
+	log_info "\nService(s) Discovery\n"
 
 	if [[ ! -s "${service_s_discovery_output}.xml" ]]
 	then
