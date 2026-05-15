@@ -369,7 +369,7 @@ do
 		-t | --target)
 			target="${2:?'-t/--target requires an argument.'}"
 
-			shift 2
+			shift
 		;;
 		-l | --list)
 			target_list="${2:?'-l/--list requires an argument.'}"
@@ -381,7 +381,7 @@ do
 				exit 1
 			fi
 
-			shift 2
+			shift
 		;;
 		-p | --ports)
 			ports="${2:?'-p/--ports requires an argument.'}"
@@ -393,7 +393,7 @@ do
 				exit 1
 			fi
 
-			shift 2
+			shift
 		;;
 		-w | --workflow)
 			if [[ ! " ${workflows[@]} " =~ " ${2} " ]]
@@ -405,7 +405,7 @@ do
 
 			workflow=${2}
 
-			shift 2
+			shift
 		;;
 		--workflows)
 			printf "Supported workflows:\n\n"
@@ -428,12 +428,12 @@ do
 				exit 1
 			fi
 
-			shift 2
+			shift
 		;;
 		-o| --output)
 			output="${2:?'-o/--output requires an argument.'}"
 
-			shift 2
+			shift
 		;;
 		--setup)
 			setup
