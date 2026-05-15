@@ -24,7 +24,7 @@ log_warn() {
 log_error() {
 	printf "${fmt[blue]}[${fmt[red]}-${fmt[blue]}]${fmt[reset]} %s\n" "$*" >&2
 }
- 
+
 CMD_PREFIX=
 
 if [[ ${UID} -gt 0 ]]
@@ -93,9 +93,9 @@ setup() {
 }
 
 is_valid_IP() {
-	local IP=$1
+	local IP="$1"
 
-	if ! [[ $IP =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]
+	if ! [[ "${IP}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]
 	then 
 		return 1
 	fi
@@ -186,7 +186,7 @@ run_nc_open_ports_discovery() {
 		if timeout 3 nc -z -w 2 "${_nc_target}" "${_nc_port}" &>/dev/null
 		then
 			(
-				flock -x 200
+				flock --exclusive 200
 				printf '%d\n' "${_nc_port}"
 			) 200>>"${_nc_lock}" >> "${_nc_tmp_output}"
 		fi
@@ -225,7 +225,7 @@ run_nmap_open_ports_discovery() {
 	local nmap_ports="$2"
 	local nmap_output="$3"
 
-	${CMD_PREFIX} nmap --min-rate 1000 -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p ${nmap_ports} -Pn "${nmap_target}" -oX "${nmap_output}"
+	${CMD_PREFIX} nmap --min-rate 1000 -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p "${nmap_ports}" -Pn "${nmap_target}" -oX "${nmap_output}"
 }
 
 run_masscan_open_ports_discovery() {
@@ -254,7 +254,7 @@ discover() {
 		return 0
 	fi
 
-	log_info "${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}..."
+	printf "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...\n" >&2
 
 	local -a open_ports=()
 
@@ -331,7 +331,7 @@ discover() {
 		log_warn "skipped!...previous results found."
 	fi
 
-	log_info "${fmt[bold]}${target}${fmt[reset]}...done!\n"
+	printf "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} ${fmt[bold]}${target}${fmt[reset]}...done!\n\n" >&2
 }
 
 readonly workflows=(
@@ -430,7 +430,7 @@ do
 
 			shift
 		;;
-		-o| --output)
+		-o | --output)
 			output="${2:?'-o/--output requires an argument.'}"
 
 			shift
