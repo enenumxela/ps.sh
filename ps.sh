@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-declare -A format=(
-	[color_blue]="\e[34m"
-	[color_cyan]="\e[36m"
-	[color_green]="\e[32m"
-	[color_red]="\e[31m"
-	[color_yellow]="\e[33m"
+declare -A fmt=(
+	[blue]="\e[34m"
+	[cyan]="\e[36m"
+	[green]="\e[32m"
+	[red]="\e[31m"
+	[yellow]="\e[33m"
 	[bold]="\e[1m"
 	[underline]="\e[4m"
 	[reset]="\e[0m"
@@ -15,95 +15,110 @@ declare -A format=(
 
 CMD_PREFIX=
 
-if [ ${UID} -gt 0 ] && [ -x "$(command -v sudo)" ]
+if [[ ${UID} -gt 0 ]]
 then
-	CMD_PREFIX="sudo"
-elif [ ${UID} -gt 0 ] && [ ! -x "$(command -v sudo)" ]
-then
-	echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...\`sudo\` not found!\n"
+	if command -v sudo &>/dev/null
+	then
+		CMD_PREFIX="sudo"
+	else
+		echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...running as root and \`sudo\` was not found.\n"
 
-	exit 1
+		exit 1
+	fi
 fi
 
 banner() {
-echo -e ${format[bold]}${format[color_blue]}"
-                                          _
-                          _ __  ___   ___| |__
-                         | '_ \/ __| / __| '_ \\
-                         | |_) \__  ${format[color_red]}_${format[color_blue]}\__ \ | | |
-                         | .__/|___${format[color_red]}(_)${format[color_blue]}___/_| |_|
-                         |_|              ${format[color_red]}v1.0.0${format[color_green]}
+echo -e ${fmt[bold]}${fmt[blue]}"
+                                                  _
+                                  _ __  ___   ___| |__
+                                 | '_ \/ __| / __| '_ \\
+                                 | |_) \__  ${fmt[red]}_${fmt[blue]}\__ \ | | |
+                                 | .__/|___${fmt[red]}(_)${fmt[blue]}___/_| |_|
+                                 |_|              ${fmt[red]}v1.0.0${fmt[green]}
 
-              ---====| ${format[color_blue]}A Service Discovery Script.${format[color_green]} |====---
-"${format[reset]}
+<>--------------------------<><> ${fmt[blue]}A Port Scanning Script.${fmt[green]} <><>--------------------------<>
+"${fmt[reset]}
 }
 
 usage() {
-	while read -r line
-	do
+	while IFS= read -r line; do
 		printf "%b\n" "${line}"
 	done <<-EOF
-	\rUSAGE:
-	\r  ${0##*/} [OPTIONS]
-
-	\rOPTIONS:
-	\r  -t, --target \t\t\t target IP
-	\r  -l, --list \t\t\t target IPs file
-	\r  -p, --ports \t\t\t target port(s) (default: ${format[underline]}${ports}${format[reset]})
-	\r  -w, --workflow \t\t discovery workflow (default: ${format[underline]}${workflow}${format[reset]})
-	\r      --workflows \t\t supported discovery workflows
-	\r  -O, --output-directory \t output directory (default: \$PWD)
-	\r      --setup \t\t\t setup ${0##*/}
-	\r  -h, --help \t\t\t display help
-
+	\r USAGE:
+	\r   ${0##*/} [OPTIONS]
+	\r
+	\r OPTIONS:
+	\r   -t, --target              target IP
+	\r   -l, --list                target IPs file
+	\r   -p, --ports               target port(s) (default: ${fmt[underline]}${ports}${fmt[reset]})
+	\r   -w, --workflow            discovery workflow (default: ${fmt[underline]}${workflow}${fmt[reset]})
+	\r       --workflows           list supported discovery workflows
+	\r   -o, --output              output directory (default: ${fmt[underline]}${output}${fmt[reset]})
+	\r       --setup               install required dependencies
+	\r   -h, --help                display this help
+	\r
 EOF
 }
 
 setup() {
-	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setup...started!\n"
+	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Setting up..."
 
-	eval ${CMD_PREFIX} apt-get install -y -qq libxml2-utils
+	local pkgs=()
 
-	if [ ! -x "$(command -v nmap)" ]
+	command -v nmap &>/dev/null || pkgs+=(nmap)
+	command -v masscan &>/dev/null || pkgs+=(masscan)
+	command -v xmllint &>/dev/null || pkgs+=(libxml2-utils)
+
+	if [[ ${#pkgs[@]} -ne 0 ]]
 	then
-		eval ${CMD_PREFIX} apt-get install -y -qq nmap
+		$CMD_PREFIX apt-get update -qq
+		$CMD_PREFIX apt-get install -y -qq "${pkgs[@]}"
 	fi
 
-	if [ ! -x "$(command -v masscan)" ]
-	then
-		eval ${CMD_PREFIX} apt-get install -y -qq masscan
-	fi
-
-	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Setup...done!\n"
+	echo -e " ${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Setting up...done!"
 }
 
-is_a_valid_IP() {
-	local IP=$1
-	local stat=1
+is_valid_IP() {
+	local IP="$1"
 
-	if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]
-	then
-		OIFS=$IFS
-		IFS='.'
-		IP=($IP)
-		IFS=$OIFS
-		[[ ${IP[0]} -le 255 && ${IP[1]} -le 255 && ${IP[2]} -le 255 && ${IP[3]} -le 255 ]]
-		stat=$?
+	if ! [[ "${IP}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]
+	then 
+		return 1
 	fi
 
-	return $stat
+	local octet
+
+	for octet in "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"
+	do
+		if ! (( octet <= 255 ))
+		then
+			return 1
+		fi
+	done
+
+	return 0
 }
 
-is_a_valid_ports() {
-	local ports=$1
-	local stat=0
+run_nmap_open_ports_discovery() {
+	local nmap_target="$1"
+	local nmap_ports="$2"
+	local nmap_output="$3"
 
-	if [[ ! "$ports" =~ ^[0-9,\-]+$ ]]
-	then
-		stat=1
-	fi
+	${CMD_PREFIX} nmap --min-rate 1000 -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p "${nmap_ports}" -Pn "${nmap_target}" -oX "${nmap_output}"
+}
 
-	return $stat
+run_masscan_open_ports_discovery() {
+	local masscan_target="$1"
+	local masscan_ports="$2"
+	local masscan_output="$3"
+
+	${CMD_PREFIX} masscan --ports "${masscan_ports}" "${masscan_target}" --max-rate 1000 -oX "${masscan_output}"
+}
+
+xml_extract_open_ports() {
+	local xml_file="$1"
+
+	xmllint --xpath '//port/state[@state="open"]/../@portid' "${xml_file}" 2>/dev/null | grep -oP '"\K[^"]+' | sort -nu
 }
 
 discover() {
@@ -111,119 +126,122 @@ discover() {
 	local ports=$2
 	local workflow=$3
 
-	if ! is_a_valid_IP "$target"
+	if ! is_valid_IP "$target"
 	then
-		echo -e "\n${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped!...${target} is not a valid IP Address!\n"
+		echo -e "${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...invalid IP \"${target}\".\n"
 
-		return 1
+		return 0
 	fi
 
-	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Discovery for ${format[bold]}${format[underline]}${target}${format[reset]}...started!\n"
+	echo -e "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...\n"
 
-	local open_ports=()
+	local -a open_ports=()
 
 	local port_s_discovery_output=""
-	local service_s_discovery_output="${output_directory}/${target}"
+	local service_s_discovery_output="${output}/${target}"
 
-	echo -e " ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Port(s) Discovery"
+	echo -e "    ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Port(s) Discovery\n"
 
 	case "${workflow}" in
 		nmap2nmap)
-			port_s_discovery_output="${output_directory}/${target}-nmap-port-discovery.xml"
+			port_s_discovery_output="${output}/${target}-nmap-port-discovery.xml"
 
-			if [[ ! -s "${port_s_discovery_output}" ]]
+			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				${CMD_PREFIX} nmap -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p ${ports} -Pn "${target}" -oX "${port_s_discovery_output}"
+				echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
-				echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped! Previous results found."
+				run_nmap_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				open_ports=($(xmllint --xpath '//port/state[@state="open"]/../@portid' "${port_s_discovery_output}" 2>/dev/null | awk -F'"' '{print $2}'))
+				mapfile -t open_ports < <(xml_extract_open_ports "${port_s_discovery_output}")
 			fi
 			;;
 		masscan2nmap)
-			port_s_discovery_output="${output_directory}/${target}-masscan-port-discovery.xml"
+			port_s_discovery_output="${output}/${target}-masscan-port-discovery.xml"
 
-			if [[ ! -s "${port_s_discovery_output}" ]]
+			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				${CMD_PREFIX} masscan --ports ${ports} "${target}" --max-rate 1000 -oX "${port_s_discovery_output}"
+				echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
-				echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped! Previous results found."
+				run_masscan_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
 			fi
 
 			if [[ -s "${port_s_discovery_output}" ]]
 			then
-				open_ports=($(xmllint --xpath '//port/state[@state="open"]/../@portid' "${port_s_discovery_output}" 2>/dev/null | awk -F'"' '{print $2}'))
+				mapfile -t open_ports < <(xml_extract_open_ports "${port_s_discovery_output}")
 			fi
 			;;
 	esac
 
-	echo -e "\n ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Service(s) Discovery"
+	echo -e "\n    ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Service(s) Discovery\n"
 
-	if [[ ${#ports[@]} -eq 0 ]]
+	if [[ ! -s "${service_s_discovery_output}.xml" ]]
 	then
-		echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} No open ports found."
-	else
-		open_ports=($(printf '%s\n' "${open_ports[@]}" | sort -nu))
-
-		local open_ports_list=$(IFS=,; echo "${open_ports[*]}")
-
-		if [[ ! -s "${service_s_discovery_output}.xml" ]]
+		if [[ ${#open_ports[@]} -eq 0 ]]
 		then
-			$CMD_PREFIX nmap -T4 -A -p "${open_ports_list}" "${target}" -Pn -oA "${service_s_discovery_output}"
+			echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...no open ports found."
 		else
-			echo -e " ${format[color_blue]}[${format[color_yellow]}*${format[color_blue]}]${format[reset]} skipped! Previous results found."
+			mapfile -t open_ports < <(printf '%s\n' "${open_ports[@]}" | sort -nu)
+
+			local open_ports_csv
+
+			open_ports_csv="$(IFS=','; printf '%s' "${open_ports[*]}")"
+
+			$CMD_PREFIX nmap -T4 -A --max-retries 2 -p "${open_ports_csv}" -Pn "${target}" -oA "${service_s_discovery_output}"
 		fi
+	else
+		echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 	fi
 
-	echo -e "\n${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} Discovery for ${format[bold]}${target}${format[reset]}...done!\n"
+	echo -e "\n${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...done!\n"
 }
 
-target="False"
-target_list="False"
-
-ports="0-65535"
-
-workflow="nmap2nmap"
-workflow_list=(
+readonly workflows=(
 	nmap2nmap
 	masscan2nmap
 )
 
-output_directory="${PWD}"
+target="__none__"
+target_list="__none__"
+
+ports="0-65535"
+
+workflow="nmap2nmap"
+
+output="${PWD}"
 
 banner
 
-if [[ -z ${@} ]]
+if [[ $# -eq 0 ]]
 then
 	usage
 
 	exit 0
 fi
 
-if [ "${SUDO_USER:-$USER}" != "${USER}" ]
+if [[ -n "${SUDO_USER:-}" ]]
 then
-	echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...ps.sh shouldn't be called with sudo!\n"
+	echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...${0##*/} shouldn't be run with sudo, it escalates privileges internally when needed.\n"
 
 	exit 1
 fi
 
-while [[ "${#}" -gt 0 && ."${1}" == .-* ]]
+while [[ $# -gt 0 && "$1" == -* ]]
 do
-	case ${1}  in
+	case ${1} in
 		-t | --target)
-			target=${2}
+			target="${2:?'-t/--target requires an argument.'}"
 
 			shift
 		;;
 		-l | --list)
-			target_list=${2}
+			target_list="${2:?'-l/--list requires an argument.'}"
 
-			if [ ! -f ${target_list} ] || [ ! -s ${target_list} ]
+			if [[ ! -f "$target_list" || ! -s "$target_list" ]]
 			then
-				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Missing or Empty target list specified!\n"
+				echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...missing or empty IPs file.\n"
 
 				exit 1
 			fi
@@ -231,21 +249,21 @@ do
 			shift
 		;;
 		-p | --ports)
-			ports="${2}"
+			ports="${2:?'-p/--ports requires an argument.'}"
 
-			if ! is_a_valid_ports "$ports"
+			if ! [[ "${ports}" =~ ^[0-9,\-]+$ ]]
 			then
-				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Invalid ports specification!\n"
+				echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid ports.\n"
 
-				return 1
+				exit 1
 			fi
 
 			shift
 		;;
 		-w | --workflow)
-			if [[ ! " ${workflow_list[@]} " =~ " ${2} " ]]
+			if [[ ! " ${workflows[@]} " =~ " ${2} " ]]
 			then
-				echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...unknown workflow: ${2}\n"
+				echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...unknown workflow \"${2}\", see --workflows.\n"
 
 				exit 1
 			fi
@@ -258,16 +276,16 @@ do
 			echo -e "Supported workflows:"
 
 			echo
-			for workflow in ${workflow_list[@]}
+			for workflow in ${workflows[@]}
 			do
-				echo -e " ${format[color_blue]}[${format[color_green]}+${format[color_blue]}]${format[reset]} ${workflow}"
+				echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} ${workflow}"
 			done
 			echo
 
 			exit 0
 		;;
-		-O | --output-directory)
-			output_directory="${2}"
+		-o | --output)
+			output="${2:?'-o/--output requires an argument.'}"
 
 			shift
 		;;
@@ -282,6 +300,8 @@ do
 			exit 0
 		;;
 		*)
+			echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid option \"${1}\".\n"
+
 			usage
 
 			exit 1
@@ -291,27 +311,32 @@ do
 	shift
 done
 
-if [ ${target} == "False" ] && [ ${target_list} == "False" ] 
+if [ "${target}" == "__none__" ] && [ "${target_list}" == "__none__" ]
 then
-	echo -e "\n${format[color_blue]}[${format[color_red]}-${format[color_blue]}]${format[reset]} failed!...Missing -t/--target or -tL/--target_list argument!\n"
+	echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...missing -t/--target or -l/--list argument.\n"
 
 	exit 1
 fi
 
-if [ ! -d ${output_directory} ]
+if [ ! -d "${output}" ]
 then
-	mkdir -p ${output_directory}
+	mkdir -p "${output}"
 fi
 
-if [ ${target} != "False" ]
+if [[ "$target" != "__none__" ]];
 then
-	discover "${target}" "${ports}" "${workflow}"
-elif [ ${target_list} != "False" ]
+	discover "$target" "$ports" "$workflow"
+fi
+
+if [[ "$target_list" != "__none__" ]]
 then
-	while read -r target
+	while IFS= read -r target
 	do
-		discover "${target}" "${ports}" "${workflow}"
-	done < <(sort -u "${target_list}")
+		if [[ -n "$target" ]]
+		then
+			discover "$target" "$ports" "$workflow"
+		fi
+	done < <(awk '!seen[$0]++' "$target_list")
 fi
 
 exit 0

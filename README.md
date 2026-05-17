@@ -2,7 +2,7 @@
 
 ![Made with Bash](https://img.shields.io/badge/made%20with-Bash-0040ff.svg) ![Maintenance](https://img.shields.io/badge/maintained%3F-yes-0040ff.svg) [![open issues](https://img.shields.io/github/issues-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:open) [![closed issues](https://img.shields.io/github/issues-closed-raw/enenumxela/ps.sh.svg?style=flat&color=0040ff)](https://github.com/enenumxela/ps.sh/issues?q=is:issue+is:closed) [![license](https://img.shields.io/badge/license-MIT-gray.svg?colorB=0040FF)](https://github.com/enenumxela/ps.sh/blob/master/LICENSE)
 
-`ps.sh` is a bash script that automates the process of service discovery on specified target hosts. The aim of the scripts is reducing scan time, increasing scan efficiency and automating the workflow.
+`ps.sh` is a bash script that automates port scanning on specified target host(s). The aim of the scripts is reducing scan time, increasing scan efficiency and automating the workflow.
 
 ## Resource
 
@@ -50,46 +50,38 @@ Here's what the help message looks like:
 
 ```text
 
-                                          _
-                          _ __  ___   ___| |__
-                         | '_ \/ __| / __| '_ \
-                         | |_) \__  _\__ \ | | |
-                         | .__/|___(_)___/_| |_|
-                         |_|              v1.0.0
+                                                  _
+                                  _ __  ___   ___| |__
+                                 | '_ \/ __| / __| '_ \
+                                 | |_) \__  _\__ \ | | |
+                                 | .__/|___(_)___/_| |_|
+                                 |_|              v1.0.0
 
-              ---====| A Service Discovery Script. |====---
+<>--------------------------<><> A Port Scanning Script. <><>--------------------------<>
 
-USAGE:
-  ps.sh [OPTIONS]
+ USAGE:
+   ps.sh [OPTIONS]
 
-OPTIONS:
-  -t, --target                   target IP
-  -l, --list                     target IPs file
-  -p, --ports                    target port(s) (default: 0-65535)
-  -w, --workflow                 discovery workflow (default: nmap2nmap)
-      --workflows                supported discovery workflows
-  -O, --output-directory         output directory (default: $PWD)
-      --setup                    setup ps.sh
-  -h, --help                     display help
+ OPTIONS:
+   -t, --target              target IP
+   -l, --list                target IPs file
+   -p, --ports               target port(s) (default: 0-65535)
+   -w, --workflow            discovery workflow (default: nmap2nmap)
+       --workflows           list supported discovery workflows
+   -o, --output              output directory (default: $PWD)
+       --setup               install required dependencies
+   -h, --help                display this help
 
 ```
 
 ## Contributing
 
-We welcome contributions! Feel free to submit [Pull Requests](https://github.com/enenumxela/ps.sh/pulls) or report [Issues](https://github.com/enenumxela/ps.sh/issues). For more details, check out the [contribution guidelines](https://github.com/enenumxela/ps.sh/blob/master/CONTRIBUTING.md).
+Contributions are welcome and encouraged! Feel free to submit [Pull Requests](https://github.com/enenumxela/ps.sh/pulls) or report [Issues](https://github.com/enenumxela/ps.sh/issues). For more details, check out the [contribution guidelines](https://github.com/enenumxela/ps.sh/blob/master/CONTRIBUTING.md).
+
+A big thank you to all the [contributors](https://github.com/enenumxela/ps.sh/graphs/contributors) for your ongoing support!
+
+![contributors](https://contrib.rocks/image?repo=enenumxela/ps.sh&max=500)
 
 ## Licensing
 
 This utility is licensed under the [MIT license](https://opensource.org/license/mit). You are free to use, modify, and distribute it, as long as you follow the terms of the license. You can find the full license text in the repository - [Full MIT license text](https://github.com/enenumxela/ps.sh/blob/master/LICENSE).
-
-## Credits
-
-### Contributors
-
-A huge thanks to all the contributors who have helped make `ps.sh` what it is today!
-
-[![contributors](https://contrib.rocks/image?repo=enenumxela/ps.sh&max=500)](https://github.com/enenumxela/ps.sh/graphs/contributors)
-
-### Dependencies
-
-[masscan](https://github.com/robertdavidgraham/masscan) ◇ [nmap](https://github.com/nmap/nmap)
