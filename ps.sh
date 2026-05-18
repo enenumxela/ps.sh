@@ -130,7 +130,7 @@ discover() {
 
 	if ! is_valid_IP "$target"
 	then
-		echo -e "${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...invalid IP \"${target}\".\n"
+		echo -e "    ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...invalid IP \"${target}\".\n"
 
 		return 0
 	fi
