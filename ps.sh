@@ -61,7 +61,7 @@ EOF
 }
 
 setup() {
-	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Setting up..."
+	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Setting up...\n"
 
 	local pkgs=()
 
@@ -73,9 +73,11 @@ setup() {
 	then
 		$CMD_PREFIX apt-get update -qq
 		$CMD_PREFIX apt-get install -y -qq "${pkgs[@]}"
+	else
+		echo -e "    ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...all is set."
 	fi
 
-	echo -e " ${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Setting up...done!"
+	echo -e "\n ${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Setting up...done!\n"
 }
 
 is_valid_IP() {
