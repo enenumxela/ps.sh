@@ -70,7 +70,7 @@ Here's what the help message looks like:
        --workflows           list supported discovery workflows
    -o, --output              output directory (default: $PWD)
        --setup               install required dependencies
-   -h, --help                display this help
+   -h, --help                display this help message
 
 ```
 

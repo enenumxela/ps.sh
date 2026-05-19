@@ -27,7 +27,7 @@ then
 	fi
 fi
 
-banner() {
+print_banner() {
 echo -e ${fmt[bold]}${fmt[blue]}"
                                                   _
                                   _ __  ___   ___| |__
@@ -40,7 +40,7 @@ echo -e ${fmt[bold]}${fmt[blue]}"
 "${fmt[reset]}
 }
 
-usage() {
+print_help_msg() {
 	while IFS= read -r line; do
 		printf "%b\n" "${line}"
 	done <<-EOF
@@ -55,12 +55,12 @@ usage() {
 	\r       --workflows           list supported discovery workflows
 	\r   -o, --output              output directory (default: ${fmt[underline]}${output}${fmt[reset]})
 	\r       --setup               install required dependencies
-	\r   -h, --help                display this help
+	\r   -h, --help                display this help message
 	\r
 EOF
 }
 
-setup() {
+setup_dependencies() {
 	echo -e " ${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Setting up...\n"
 
 	local pkgs=()
@@ -71,8 +71,8 @@ setup() {
 
 	if [[ ${#pkgs[@]} -ne 0 ]]
 	then
-		$CMD_PREFIX apt-get update -qq
-		$CMD_PREFIX apt-get install -y -qq "${pkgs[@]}"
+		${CMD_PREFIX} apt-get update -qq
+		${CMD_PREFIX} apt-get install -y -qq "${pkgs[@]}"
 	else
 		echo -e "    ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...all is set."
 	fi
@@ -80,7 +80,7 @@ setup() {
 	echo -e "\n ${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Setting up...done!\n"
 }
 
-is_valid_IP() {
+is_IP_valid() {
 	local IP="$1"
 
 	if ! [[ "${IP}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]
@@ -102,102 +102,158 @@ is_valid_IP() {
 }
 
 run_nmap_open_ports_discovery() {
-	local nmap_target="$1"
-	local nmap_ports="$2"
-	local nmap_output="$3"
+	local IP="$1"
+	local ports="$2"
 
-	${CMD_PREFIX} nmap --min-rate 1000 -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p "${nmap_ports}" -Pn "${nmap_target}" -oX "${nmap_output}"
+	local output="$3"
+
+	${CMD_PREFIX} nmap --min-rate 1000 -sS -T4 --max-retries 1 --max-scan-delay 20 --defeat-rst-ratelimit -p "${ports}" -Pn "${IP}" -oX "${output}"
 }
 
 run_masscan_open_ports_discovery() {
-	local masscan_target="$1"
-	local masscan_ports="$2"
-	local masscan_output="$3"
+	local IP="$1"
+	local ports="$2"
 
-	${CMD_PREFIX} masscan --ports "${masscan_ports}" "${masscan_target}" --max-rate 1000 -oX "${masscan_output}"
+	local output="$3"
+
+	${CMD_PREFIX} masscan --ports "${ports}" "${IP}" --max-rate 1000 -oX "${output}"
 }
 
 xml_extract_open_ports() {
-	local xml_file="$1"
+	local f="$1"
 
-	xmllint --xpath '//port/state[@state="open"]/../@portid' "${xml_file}" 2>/dev/null | grep -oP '"\K[^"]+' | sort -nu
+	xmllint --xpath '//port/state[@state="open"]/../@portid' "${f}" 2>/dev/null | grep -oP '"\K[^"]+' | sort -nu
 }
 
-discover() {
-	local target=$1
+run_nmap_open_services_discovery() {
+	local IP="$1"
+	local ports="$2"
+
+	local output="$3"
+
+	${CMD_PREFIX} nmap -T4 -A --max-retries 2 -p "${ports}" -Pn "${IP}" -oA "${output}"
+}
+
+run_discovery() {
+	local IP=$1
 	local ports=$2
 	local workflow=$3
 
-	if ! is_valid_IP "$target"
+	if ! is_IP_valid "${IP}"
 	then
-		echo -e "    ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...invalid IP \"${target}\".\n"
+		echo -e "    ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...invalid IP \"${IP}\".\n"
 
 		return 0
 	fi
 
-	echo -e "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...\n"
+	echo -e "${fmt[blue]}[${fmt[green]}+${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${IP}${fmt[reset]}...\n"
 
-	local -a open_ports=()
+	local -a discovered_open_ports=()
 
-	local port_s_discovery_output=""
-	local service_s_discovery_output="${output}/${target}"
+	local discovered_ports_discovery_output=""
+	local discovered_services_discovery_output="${output}/${IP}"
 
 	echo -e "    ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Port(s) Discovery\n"
 
 	case "${workflow}" in
 		nmap2nmap)
-			port_s_discovery_output="${output}/${target}-nmap-port-discovery.xml"
+			discovered_ports_discovery_output="${output}/${IP}-nmap-port-discovery.xml"
 
-			if [[ -s "${port_s_discovery_output}" ]]
+			if [[ -s "${discovered_ports_discovery_output}" ]]
 			then
 				echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
-				run_nmap_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
+				run_nmap_open_ports_discovery "${IP}" "${ports}" "${discovered_ports_discovery_output}"
 			fi
 
-			if [[ -s "${port_s_discovery_output}" ]]
+			if [[ -s "${discovered_ports_discovery_output}" ]]
 			then
-				mapfile -t open_ports < <(xml_extract_open_ports "${port_s_discovery_output}")
+				mapfile -t discovered_open_ports < <(xml_extract_open_ports "${discovered_ports_discovery_output}")
 			fi
 			;;
 		masscan2nmap)
-			port_s_discovery_output="${output}/${target}-masscan-port-discovery.xml"
+			discovered_ports_discovery_output="${output}/${IP}-masscan-port-discovery.xml"
 
-			if [[ -s "${port_s_discovery_output}" ]]
+			if [[ -s "${discovered_ports_discovery_output}" ]]
 			then
 				echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 			else
-				run_masscan_open_ports_discovery "${target}" "${ports}" "${port_s_discovery_output}"
+				run_masscan_open_ports_discovery "${IP}" "${ports}" "${discovered_ports_discovery_output}"
 			fi
 
-			if [[ -s "${port_s_discovery_output}" ]]
+			if [[ -s "${discovered_ports_discovery_output}" ]]
 			then
-				mapfile -t open_ports < <(xml_extract_open_ports "${port_s_discovery_output}")
+				mapfile -t discovered_open_ports < <(xml_extract_open_ports "${discovered_ports_discovery_output}")
 			fi
 			;;
 	esac
 
 	echo -e "\n    ${fmt[blue]}[${fmt[green]}>${fmt[blue]}]${fmt[reset]} Service(s) Discovery\n"
 
-	if [[ ! -s "${service_s_discovery_output}.xml" ]]
+	if [[ ! -s "${discovered_services_discovery_output}.xml" ]]
 	then
-		if [[ ${#open_ports[@]} -eq 0 ]]
+		if [[ ${#discovered_open_ports[@]} -eq 0 ]]
 		then
 			echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...no open ports found."
 		else
-			mapfile -t open_ports < <(printf '%s\n' "${open_ports[@]}" | sort -nu)
+			mapfile -t discovered_open_ports < <(printf '%s\n' "${discovered_open_ports[@]}" | sort -nu)
 
-			local open_ports_csv
+			local discovered_open_ports_csv
 
-			open_ports_csv="$(IFS=','; printf '%s' "${open_ports[*]}")"
+			discovered_open_ports_csv="$(IFS=','; printf '%s' "${discovered_open_ports[*]}")"
 
-			$CMD_PREFIX nmap -T4 -A --max-retries 2 -p "${open_ports_csv}" -Pn "${target}" -oA "${service_s_discovery_output}"
+			run_nmap_open_services_discovery "${IP}" "${discovered_open_ports_csv}" "${discovered_services_discovery_output}"
 		fi
 	else
 		echo -e "        ${fmt[blue]}[${fmt[yellow]}!${fmt[blue]}]${fmt[reset]} skipped!...previous results found."
 	fi
 
-	echo -e "\n${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${target}${fmt[reset]}...done!\n"
+	echo -e "\n${fmt[blue]}[${fmt[green]}✓${fmt[blue]}]${fmt[reset]} Scanning ${fmt[bold]}${fmt[underline]}${IP}${fmt[reset]}...done!\n"
+}
+
+is_ports_valid() {
+	local ports="$1"
+
+	if ! [[ "${ports}" =~ ^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$ ]]
+	then
+		echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid port format.\n"
+
+		return 1
+	fi
+
+	local tokens token start end port
+
+	IFS=',' read -ra tokens <<< "${ports}"
+
+	for token in "${tokens[@]}"
+	do
+		if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]
+		then
+			start=${BASH_REMATCH[1]}
+			end=${BASH_REMATCH[2]}
+
+			start=$((10#$start))
+			end=$((10#$end))
+
+			if (( start > 65535 || end > 65535 || start > end ))
+			then
+				echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid port range \"${start}-${end}\".\n"
+
+				return 1
+			fi
+		else
+			port=$((10#$token))
+
+			if (( port > 65535 ))
+			then
+				echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid port \"${port}\".\n"
+
+				return 1
+			fi
+		fi
+	done
+
+	return 0
 }
 
 readonly workflows=(
@@ -214,18 +270,18 @@ workflow="nmap2nmap"
 
 output="${PWD}"
 
-banner
+print_banner
 
 if [[ $# -eq 0 ]]
 then
-	usage
+	print_help_msg
 
 	exit 0
 fi
 
 if [[ -n "${SUDO_USER:-}" ]]
 then
-	echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...${0##*/} shouldn't be run with sudo, it escalates privileges internally when needed.\n"
+	echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...${0##*/} shouldn't be run with sudo, it escalates privileges internally when needed.\n"
 
 	exit 1
 fi
@@ -243,7 +299,7 @@ do
 
 			if [[ ! -f "$target_list" || ! -s "$target_list" ]]
 			then
-				echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...missing or empty IPs file.\n"
+				echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...missing or empty IPs file.\n"
 
 				exit 1
 			fi
@@ -253,10 +309,8 @@ do
 		-p | --ports)
 			ports="${2:?'-p/--ports requires an argument.'}"
 
-			if ! [[ "${ports}" =~ ^[0-9,\-]+$ ]]
+			if ! is_ports_valid "${ports}"
 			then
-				echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid ports.\n"
-
 				exit 1
 			fi
 
@@ -265,7 +319,7 @@ do
 		-w | --workflow)
 			if [[ ! " ${workflows[@]} " =~ " ${2} " ]]
 			then
-				echo -e "\n${fmt[blue]}[${fmt[color_red]}✗${fmt[blue]}]${fmt[reset]} failed!...unknown workflow \"${2}\", see --workflows.\n"
+				echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...unknown workflow \"${2}\", see --workflows.\n"
 
 				exit 1
 			fi
@@ -292,19 +346,19 @@ do
 			shift
 		;;
 		--setup)
-			setup
+			setup_dependencies
 
 			exit 0
 		;;
 		-h | --help)
-			usage
+			print_help_msg
 
 			exit 0
 		;;
 		*)
 			echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...invalid option \"${1}\".\n"
 
-			usage
+			print_help_msg
 
 			exit 1
 		;;
@@ -327,7 +381,7 @@ fi
 
 if [[ "$target" != "__none__" ]];
 then
-	discover "$target" "$ports" "$workflow"
+	run_discovery "$target" "$ports" "$workflow"
 fi
 
 if [[ "$target_list" != "__none__" ]]
@@ -336,7 +390,7 @@ then
 	do
 		if [[ -n "$target" ]]
 		then
-			discover "$target" "$ports" "$workflow"
+			run_discovery "$target" "$ports" "$workflow"
 		fi
 	done < <(awk '!seen[$0]++' "$target_list")
 fi
