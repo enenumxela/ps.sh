@@ -34,7 +34,7 @@ echo -e ${fmt[bold]}${fmt[blue]}"
                                  | '_ \/ __| / __| '_ \\
                                  | |_) \__  ${fmt[red]}_${fmt[blue]}\__ \ | | |
                                  | .__/|___${fmt[red]}(_)${fmt[blue]}___/_| |_|
-                                 |_|              ${fmt[red]}v1.0.0${fmt[green]}
+                                 |_|                    ${fmt[yellow]}[${fmt[red]} v1.0.0 ${fmt[yellow]}]${fmt[green]}
 
 <>--------------------------<><> ${fmt[blue]}A Port Scanning Script.${fmt[green]} <><>--------------------------<>
 "${fmt[reset]}
@@ -281,7 +281,7 @@ fi
 
 if [[ -n "${SUDO_USER:-}" ]]
 then
-	echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...${0##*/} shouldn't be run with sudo, it escalates privileges internally when needed.\n"
+	echo -e "\n${fmt[blue]}[${fmt[red]}✗${fmt[blue]}]${fmt[reset]} failed!...${0##*/} shouldn't be run with \`sudo\`, it escalates privileges internally when needed.\n"
 
 	exit 1
 fi
